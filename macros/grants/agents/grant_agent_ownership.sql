@@ -12,12 +12,12 @@
 -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
-
 {% macro get_grant_agent_ownership(schema_list, role_name) %}
+    {# Ensure only valid identifiers are interpolated #}
     {% if flags.WHICH not in ['run','run-operation'] %}{% do return([]) %}{% endif %}
     {% if not execute %}{% do return([]) %}{% endif %}
     {% set query %}
-       show agents in database {{ target.database }}
+       show agents in database {{ target.database | replace("'", "''") }}
        ->>
        select "schema_name" as schema_name, "name" as agent_name
        from $1
@@ -36,4 +36,5 @@
     {% endif %}
     {% do return(statements) %}
 {% endmacro %}
+
 

@@ -14,13 +14,63 @@ Add the following to your packages.yml file
 ```
 
 ## Contents
-Conatins the following materializations for Snowflake:
 
-* Agent
+Contains the following materializations for Snowflake:
+* Snowflake Agent
 
 Contains the following macros for Snowflake:
+* grant_semantic_views_privileges
+* grant_agent_usage
+* grant_cortex_ownership
 
-*
+---
+
+## Macro Reference
+
+### grant_semantic_views_privileges
+**Description:**
+Grants SELECT privileges on all semantic views in eligible schemas to specified roles. Excludes schemas as needed.
+
+**Parameters:**
+- `exclude_schemas` (list): Schemas to exclude from processing. Optional.
+- `grant_roles` (list): Roles to grant SELECT privileges to. Required.
+
+**Example Usage:**
+```sql
+{% do dbt_monitorial_snowflake_cortex.grant_semantic_views_privileges(['EXCLUDED_SCHEMA'], ['ANALYST_ROLE', 'DATA_SCIENTIST']) %}
+```
+
+---
+
+### grant_agent_usage
+**Description:**
+Grants USAGE privileges on all agents in eligible schemas to specified roles. Excludes schemas as needed.
+
+**Parameters:**
+- `exclude_schemas` (list): Schemas to exclude from processing. Optional.
+- `grant_roles` (list): Roles to grant USAGE privileges to. Required.
+
+**Example Usage:**
+```sql
+{% do dbt_monitorial_snowflake_cortex.grant_agent_usage(['EXCLUDED_SCHEMA'], ['ANALYST_ROLE', 'DATA_SCIENTIST']) %}
+```
+
+---
+
+### grant_cortex_ownership
+**Description:**
+Grants OWNERSHIP on schemas, semantic views, and agents to a specified role, excluding schemas as needed. (Macro file may be named differently; see project macros for exact name.)
+
+**Parameters:**
+- `exclude_schemas` (list): Schemas to exclude from processing. Optional.
+- `role_name` (str): Role to grant ownership to. Required.
+
+**Example Usage:**
+```sql
+{% do dbt_monitorial_snowflake_cortex.grant_cortex_ownership(['EXCLUDED_SCHEMA'], 'ADMIN_ROLE') %}
+```
+
+---
 
 
 # Snowflake Agent Materialization

@@ -15,7 +15,8 @@
 -- limitations under the License.
 
 {% macro _grant_semantic_views_privileges_specific(schema_name, grant_roles) %}
-    {% do log('====> Processing select grants on semantic views for ' ~ schema, info=True) %}
+    {# Begin select grants for semantic views in schema #}
+    {% do log('====> Processing select grants on semantic views for ' ~ schema_name, info=True) %}
     -- Grant SELECT on all semantic views to specified roles
 
     {% set views_query %}
@@ -26,9 +27,9 @@
 
     {% if views and views | length > 0 %}
         {% for view in views %}
-            {% set view_name = target.database ~ "." ~ schema_name ~ "." view[1] %}
+            {% set view_name = target.database ~ "." ~ schema_name ~ "." ~ view[1] %}
             {% set show_grants_query %}
-                show grants on semantic view {{ agent_name }};
+                show grants on semantic view {{ view_name }};
             {% endset %}
             {% set existing_grants = run_query(show_grants_query) %}
             {% set existing_roles = [] %}
@@ -50,12 +51,12 @@
         {% endfor %}
     {% endif %}
 
--- Execute all statements
+    {# Execute all statements #}
     {% if statements | length == 0 %}
         {% do log('grant_semantic_views_privileges: no changes required', info=True) %}
         {% do return(none) %}
     {% endif %}
-    {% do log('grant_semantic_views_privileges: executing ' ~ total_statements ~ ' for schema ' ~ schema_name, info=True) %}
+    {% do log('grant_semantic_views_privileges: executing ' ~ (statements | length) ~ ' for schema ' ~ schema_name, info=True) %}
     {% for stmt in statements %}
         {% do log(stmt, info=True) %}
         {% set _ = run_query(stmt) %}

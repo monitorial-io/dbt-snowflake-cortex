@@ -15,7 +15,8 @@
 
 {% macro _grant_agent_usage_specific(schema_name, grant_roles) %}
 
-    {% do log('====> Processing usage grants on agents for ' ~ schema, info=True) %}
+    {# Begin usage grants for agents in schema #}
+    {% do log('====> Processing usage grants on agents for ' ~ schema_name, info=True) %}
     {% set agents_query %}
         show agents in schema {{ target.database }}.{{ schema_name }}
     {% endset %}
@@ -25,9 +26,9 @@
 
     {% if agents and agents | length > 0 %}
         {% for agent in agents %}
-            {% set agent_name = target.database ~ "." ~ schema_name ~ "." agent[1] %}
+            {% set agent_name = target.database ~ "." ~ schema_name ~ "." ~ agent[1] %}
             {% set show_grants_query %}
-                show grants on agent {{ agent_name }};
+                show grants on agent {{ agent_name}};
             {% endset %}
             {% set existing_grants = run_query(show_grants_query) %}
             {% set existing_roles = [] %}
@@ -48,15 +49,15 @@
         {% endfor %}
     {% endif %}
 
-    -- Execute all statements
+    {# Execute all statements #}
     {% if statements | length == 0 %}
         {% do log('grant_agent_privileges: no changes required', info=True) %}
         {% do return(none) %}
     {% endif %}
-    {% do log('grant_agent_privileges: executing ' ~ total_statements ~ ' for schema ' ~ schema_name, info=True) %}
+    {% do log('grant_agent_privileges: executing ' ~ (statements | length) ~ ' for schema ' ~ schema_name, info=True) %}
     {% for stmt in statements %}
         {% do log(stmt, info=True) %}
         {% set _ = run_query(stmt) %}
     {% endfor %}
-    {% do log('grant_agent_privileges: completed select grants on semantic views for schema ' ~ schema_name, info=True) %}
+    {% do log('grant_agent_privileges: completed usage grants on agents for schema ' ~ schema_name, info=True) %}
 {% endmacro %}
