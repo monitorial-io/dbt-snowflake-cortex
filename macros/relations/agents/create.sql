@@ -13,7 +13,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-{% macro snowflake__get_create_agent_sql(relation, create_statement,comment, profile, specification) -%}
+{% macro snowflake__get_create_agent_sql(relation, create_statement, comment, profile, specification) -%}
 {#-
 --  Produce DDL that creates a a agent with the given specification.
 --
@@ -28,7 +28,7 @@
 --      A valid DDL statement which will result in a new agent.
 -#}
 
-  {{ create_statement }} agent {{ relation }}
+  {{ create_statement }} {{ relation }}
     {%- if comment %}
     COMMENT = '{{ comment }}'
     {%- endif %}

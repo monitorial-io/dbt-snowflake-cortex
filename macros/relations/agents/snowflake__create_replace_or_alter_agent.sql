@@ -29,13 +29,13 @@
     {%- endif -%}
 
     {% if create_or_replace %}
-        {% set create_statement = "create or replace" %}
+        {% set create_statement = "create or replace agent" %}
     {% else %}
-        {% set create_statement = "create if not exists" %}
+        {% set create_statement = "create agent if not exists" %}
     {% endif %}
 
     {% set existing_relation = load_relation(this) %}
-    {%- set target_relation = api.Relation.create(identifier=identifier, schema=schema, database=database, type='agent') -%}
+    {%- set target_relation = api.Relation.create(identifier=identifier, schema=schema, database=database) -%}
 
     {{ run_hooks(pre_hooks) }}
 
@@ -45,17 +45,17 @@
         {% if existing_relation %}
             {{ log("Relation already exists at {}. It will be replaced.".format(existing_relation), info=True) }}
         {% endif %}
-        {% do statements.append(dbt_monitorial_snowflake_cortex.snowflake__get_create_agent_sql(target_relation, comment, profile, specification)) %}
-    {% else %}
-        {% do statements.append(dbt_monitorial_snowflake_cortex.snowflake__get_alter_agent_comment_and_profile_sql(target_relation, comment, profile)) %}
-        {% do statements.append(dbt_monitorial_snowflake_cortex.snowflake__get_alter_agent_specification_sql(target_relation, specification)) %}
-    {% endif %}
-    -- build model
-    {% for statement in statements %}
         {% call statement('main') -%}
-            {{ statement }}
+            {{ dbt_monitorial_snowflake_cortex.snowflake__get_create_agent_sql(target_relation, create_statement, comment, profile, specification) }}
         {%- endcall %}
-    {% endfor %}
+    {% else %}
+        {% call statement('main') -%}
+            {{ dbt_monitorial_snowflake_cortex.snowflake__get_alter_agent_comment_and_profile_sql(target_relation, comment, profile) }}
+        {% endcall %}
+        {% call statement('main') -%}
+            {{ dbt_monitorial_snowflake_cortex.snowflake__get_alter_agent_specification_sql(target_relation, specification) }}
+        {% endcall %}
+    {% endif %}
 
     {{ run_hooks(post_hooks) }}
 

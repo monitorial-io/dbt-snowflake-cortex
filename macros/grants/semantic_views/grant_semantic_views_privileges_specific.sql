@@ -45,7 +45,7 @@
             {% for role in grant_roles %}
                 {% if role not in existing_roles %}
                         {% do statements.append('grant select on semantic view ' ~ view_name ~ ' to role ' ~ role ~ ';' ) %}
-                {% endfor %}
+                {% endif %}
             {% endfor %}
 
         {% endfor %}

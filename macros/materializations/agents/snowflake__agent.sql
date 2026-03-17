@@ -17,11 +17,9 @@
 
   {% set original_query_tag = set_query_tag() %}
 
-  {% set target_relation = api.Relation.create(identifier=identifier, schema=schema, database=database, type='agent') %}
+  {% set target_relation = api.Relation.create(identifier=model['alias'], schema=schema, database=database) %}
 
-  {% call statement('main') -%}
-    {{ dbt_monitorial_snowflake_cortex.snowflake__create_replace_or_alter_agent() }}
-  {%- endcall %}
+  {% do dbt_monitorial_snowflake_cortex.snowflake__create_replace_or_alter_agent() %}
 
   {% do unset_query_tag(original_query_tag) %}
   -- return
