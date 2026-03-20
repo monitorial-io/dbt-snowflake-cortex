@@ -43,6 +43,7 @@
 
     {% do queries.extend(dbt_monitorial_snowflake_cortex.grant_semantic_view_ownership(formatted_schema_list, role_name)) %}
     {% do queries.extend(dbt_monitorial_snowflake_cortex.get_grant_agent_ownership(formatted_schema_list, role_name)) %}
+    {% do queries.extend(dbt_monitorial_snowflake_cortex.get_grant_cortex_search_ownership(formatted_schema_list, role_name)) %}
 
 
     {% if queries | length == 0 %}
