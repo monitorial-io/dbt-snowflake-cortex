@@ -142,11 +142,12 @@ dbt run --models my_agent
 
 ## Configuration Parameters
 
-| Parameter | Description | Required | Default |
-|-----------|-------------|----------|---------|
-| `materialized` | Must be set to `'agent'` | Yes | - |
-| `comment` | Description of the agent | No | None |
-| `profile` | JSON string containing display name, avatar, and color | No | None |
+| Parameter                       | Description                                                | Required | Default |
+|---------------------------------|------------------------------------------------------------|----------|---------|
+| `materialized`                  | Must be set to `'agent'`                                   | Yes      | -       |
+| `comment`                       | Description of the agent                                   | No       | None    |
+| `profile`                       | JSON string containing display name, avatar, and color     | No       | None    |
+| `append_environment_to_comment` | Specifies if to append the environment name to the comment | No       | true    |
 
 
 ## Profile Object
@@ -174,8 +175,8 @@ For complete specification format, see the [Snowflake Agent documentation](https
 
 ## Examples
 
-- `models/agents_example/my_business_agent.sql` - Example using YAML as SQL content
-- `models/cortex_search_example/my_product_search.sql` - Example cortex search configuration
+- `docs/models/agents_example/my_business_agent.sql` - Example using YAML as SQL content
+- `docs/models/cortex_search_example/my_product_search.sql` - Example cortex search configuration
 
 ## Requirements
 
@@ -242,32 +243,32 @@ FROM {{ ref('documents') }}
 
 ### Shared parameters
 
-| Parameter | Description | Required | Default |
-|-----------|-------------|----------|---------|
-| `materialized` | Must be `'cortex_search'` | Yes | - |
-| `warehouse` | Warehouse used to build and refresh the index | Yes | - |
-| `target_lag` | Refresh frequency, e.g. `'1 day'`, `'6 hours'` | Yes | - |
-| `attributes` | Columns available for filtering/retrieval | No | `[]` |
-| `primary_key` | Primary key column(s), e.g. `['id']` | No | None |
-| `refresh_mode` | `FULL` or `INCREMENTAL` | No | None |
-| `initialize` | `ON_CREATE` or `ON_SCHEDULE` | No | None |
-| `full_index_build_interval_days` | Override for full rebuild interval | No | None |
-| `comment` | Description of the service | No | None |
-| `create_or_replace` | Use `CREATE OR REPLACE` instead of `IF NOT EXISTS` | No | `false` |
+| Parameter                        | Description                                        | Required | Default |
+|----------------------------------|----------------------------------------------------|----------|---------|
+| `materialized`                   | Must be `'cortex_search'`                          | Yes      | -       |
+| `warehouse`                      | Warehouse used to build and refresh the index      | Yes      | -       |
+| `target_lag`                     | Refresh frequency, e.g. `'1 day'`, `'6 hours'`     | Yes      | -       |
+| `attributes`                     | Columns available for filtering/retrieval          | No       | `[]`    |
+| `primary_key`                    | Primary key column(s), e.g. `['id']`               | No       | None    |
+| `refresh_mode`                   | `FULL` or `INCREMENTAL`                            | No       | None    |
+| `initialize`                     | `ON_CREATE` or `ON_SCHEDULE`                       | No       | None    |
+| `full_index_build_interval_days` | Override for full rebuild interval                 | No       | None    |
+| `comment`                        | Description of the service                         | No       | None    |
+| `create_or_replace`              | Use `CREATE OR REPLACE` instead of `IF NOT EXISTS` | No       | `false` |
 
 ### Form 1 only
 
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `search_column` | Column to build the full-text search index on (`ON` clause) | Yes |
-| `embedding_model` | Embedding model name | No |
+| Parameter         | Description                                                 | Required |
+|-------------------|-------------------------------------------------------------|----------|
+| `search_column`   | Column to build the full-text search index on (`ON` clause) | Yes      |
+| `embedding_model` | Embedding model name                                        | No       |
 
 ### Form 2 only
 
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `text_indexes` | Text column(s) to index | Yes |
-| `vector_indexes` | Vector column specification(s) to index | No |
+| Parameter        | Description                             | Required |
+|------------------|-----------------------------------------|----------|
+| `text_indexes`   | Text column(s) to index                 | Yes      |
+| `vector_indexes` | Vector column specification(s) to index | No       |
 
 > `search_column` and `text_indexes` are mutually exclusive.
 

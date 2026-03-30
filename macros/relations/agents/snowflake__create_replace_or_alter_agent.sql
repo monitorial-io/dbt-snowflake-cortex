@@ -18,6 +18,7 @@
     {%- set profile = config.get('profile', default=none) -%}
     {%- set specification = config.get('specification', default=none) -%}
     {%- set create_or_replace = config.get('create_or_replace', default=false) -%}
+    {%- set append_environment_to_comment = config.get('append_environment_to_comment', default=true) -%}
     {%- set identifier = model['alias'] -%}
 
     {%- if not specification -%}
@@ -33,6 +34,12 @@
     {% else %}
         {% set create_statement = "create agent if not exists" %}
     {% endif %}
+
+    {%- if append_environment_to_comment and target.name != 'prod' -%}
+        {%- set comment = (_raw_comment ~ ' [' ~ target.name ~ ']') if _raw_comment else '[' ~ target.name ~ ']' -%}
+    {%- else -%}
+        {%- set comment = _raw_comment -%}
+    {%- endif -%}
 
     {% set existing_relation = load_relation(this) %}
     {%- set target_relation = api.Relation.create(identifier=identifier, schema=schema, database=database) -%}

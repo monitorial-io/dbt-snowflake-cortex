@@ -9,6 +9,7 @@
 * added utility macros for all ALTER forms: `SET`, `SUSPEND/RESUME`, `REFRESH`, `UNSET`, `ADD/DROP SCORING PROFILE`
 * added `grant_cortex_search_usage` macro to manage USAGE grants on Cortex Search services
 * updated `grant_cortex_ownership` to include Cortex Search service ownership
+* updated `snowflake__create_replace_or_alter_cortex_search` so that the environment name is appended to the end of the description
 
 ## 1.0.0 - 2026-03-17 - Snowflake Agents
 
