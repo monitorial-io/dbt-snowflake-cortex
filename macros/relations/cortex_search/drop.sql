@@ -14,5 +14,5 @@
 -- limitations under the License.
 
 {% macro snowflake__get_drop_cortex_search_sql(relation) %}
-    drop cortex search service if exists {{ relation }}
+    drop cortex search service if exists {{ relation }};
 {% endmacro %}

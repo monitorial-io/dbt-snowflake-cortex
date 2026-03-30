@@ -14,5 +14,5 @@
 -- limitations under the License.
 
 {% macro snowflake__get_rename_cortex_search_sql(relation, new_name) %}
-    alter cortex search service if exists {{ relation }} rename to {{ new_name }}
+    alter cortex search service if exists {{ relation }} rename to {{ new_name }};
 {% endmacro %}

@@ -16,7 +16,7 @@
 {% macro snowflake__get_alter_agent_comment_and_profile_sql(relation, comment, profile) -%}
     alter agent {{ relation }}
     SET {%- if comment %}
-        COMMENT = '{{ comment }}'
+        COMMENT = '{{ comment | replace("'", "''") }}'
     {%- endif %}
     {%- if profile %}
         PROFILE = '{{ profile }}'

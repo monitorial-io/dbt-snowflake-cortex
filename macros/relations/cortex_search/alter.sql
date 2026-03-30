@@ -13,7 +13,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-{% macro snowflake__get_alter_cortex_search_set_sql(relation, warehouse, target_lag, primary_key, full_index_build_interval_days, comment) -%}
 {#-
 --  ALTER CORTEX SEARCH SERVICE [ IF EXISTS ] <name> SET ...
 --  Note: changing query, search_column, attributes, or indexes requires CREATE OR REPLACE.
@@ -25,6 +24,7 @@
 --  - full_index_build_interval_days: int | None
 --  - comment: str | None
 -#}
+{% macro snowflake__get_alter_cortex_search_set_sql(relation, warehouse, target_lag, primary_key, full_index_build_interval_days, comment) -%}
     alter cortex search service if exists {{ relation }} set
     {%- if warehouse %}
         WAREHOUSE = {{ warehouse }}
@@ -43,8 +43,6 @@
     {%- endif %};
 {%- endmacro %}
 
-
-{% macro snowflake__get_alter_cortex_search_suspend_resume_sql(relation, action, scope) -%}
 {#-
 --  ALTER CORTEX SEARCH SERVICE [ IF EXISTS ] <name> { SUSPEND | RESUME } [ { INDEXING | SERVING } ]
 --
@@ -53,34 +51,31 @@
 --  - action: str - SUSPEND or RESUME
 --  - scope: str | None - INDEXING or SERVING (omit for both)
 -#}
+{% macro snowflake__get_alter_cortex_search_suspend_resume_sql(relation, action, scope) -%}
     alter cortex search service if exists {{ relation }} {{ action }}
     {%- if scope %} {{ scope }}{%- endif %};
 {%- endmacro %}
 
-
-{% macro snowflake__get_alter_cortex_search_refresh_sql(relation) -%}
 {#-
 --  ALTER CORTEX SEARCH SERVICE [ IF EXISTS ] <name> REFRESH
 -#}
+{% macro snowflake__get_alter_cortex_search_refresh_sql(relation) -%}
     alter cortex search service if exists {{ relation }} refresh;
 {%- endmacro %}
 
-
-{% macro snowflake__get_alter_cortex_search_unset_sql(relation, unset_primary_key) -%}
 {#-
 --  ALTER CORTEX SEARCH SERVICE [ IF EXISTS ] <name> UNSET [ PRIMARY KEY ]
 --
 --  Args:
 --  - unset_primary_key: bool - whether to unset the primary key
 -#}
+{% macro snowflake__get_alter_cortex_search_unset_sql(relation, unset_primary_key) -%}
     alter cortex search service if exists {{ relation }} unset
     {%- if unset_primary_key %}
         PRIMARY KEY
     {%- endif %};
 {%- endmacro %}
 
-
-{% macro snowflake__get_alter_cortex_search_add_scoring_profile_sql(relation, profile_name, scoring_profile, if_not_exists) -%}
 {#-
 --  ALTER CORTEX SEARCH SERVICE <name>
 --    ADD SCORING PROFILE [ IF NOT EXISTS ] <profile_name>
@@ -91,13 +86,12 @@
 --  - scoring_profile: str - the scoring profile definition
 --  - if_not_exists: bool - whether to add IF NOT EXISTS guard
 -#}
+{% macro snowflake__get_alter_cortex_search_add_scoring_profile_sql(relation, profile_name, scoring_profile, if_not_exists) -%}
     alter cortex search service {{ relation }}
     add scoring profile {% if if_not_exists %}if not exists {% endif %}{{ profile_name }}
     {{ scoring_profile }};
 {%- endmacro %}
 
-
-{% macro snowflake__get_alter_cortex_search_drop_scoring_profile_sql(relation, profile_name, if_exists) -%}
 {#-
 --  ALTER CORTEX SEARCH SERVICE <name>
 --    DROP SCORING PROFILE [ IF EXISTS ] <profile_name>
@@ -106,6 +100,7 @@
 --  - profile_name: str
 --  - if_exists: bool - whether to add IF EXISTS guard
 -#}
+{% macro snowflake__get_alter_cortex_search_drop_scoring_profile_sql(relation, profile_name, if_exists) -%}
     alter cortex search service {{ relation }}
     drop scoring profile {% if if_exists %}if exists {% endif %}{{ profile_name }};
 {%- endmacro %}
