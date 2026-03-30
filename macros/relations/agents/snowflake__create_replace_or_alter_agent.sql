@@ -36,9 +36,9 @@
     {% endif %}
 
     {%- if append_environment_to_comment and target.name != 'prod' -%}
-        {%- set comment = (_raw_comment ~ ' [' ~ target.name ~ ']') if _raw_comment else '[' ~ target.name ~ ']' -%}
+        {%- set comment = (comment ~ ' [' ~ target.name ~ ']') if comment else '[' ~ target.name ~ ']' -%}
     {%- else -%}
-        {%- set comment = _raw_comment -%}
+        {%- set comment = comment -%}
     {%- endif -%}
 
     {% set existing_relation = load_relation(this) %}

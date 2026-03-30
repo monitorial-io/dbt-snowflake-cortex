@@ -15,7 +15,7 @@
 
 {% macro snowflake__create_replace_or_alter_cortex_search() %}
     {# Shared params #}
-    {%- set _raw_comment = config.get('comment', default=none) -%}
+    {%- set comment                       = config.get('comment',                       default=none) -%}
     {%- set attributes                    = config.get('attributes',                    default=[]) -%}
     {%- set primary_key                   = config.get('primary_key',                   default=none) -%}
     {%- set warehouse                     = config.get('warehouse',                     default=none) -%}

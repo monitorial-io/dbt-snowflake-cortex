@@ -39,7 +39,7 @@
         FULL_INDEX_BUILD_INTERVAL_DAYS = {{ full_index_build_interval_days }}
     {%- endif %}
     {%- if comment %}
-        COMMENT = '{{ comment }}'
+        COMMENT = '{{ comment | replace("'", "''") }}'
     {%- endif %};
 {%- endmacro %}
 

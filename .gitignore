@@ -6,3 +6,5 @@ dbt_modules/
 *venv*/
 .DS_Store
 .env
+
+settings.local.json
