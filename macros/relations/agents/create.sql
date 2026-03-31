@@ -30,7 +30,7 @@
 
   {{ create_statement }} {{ relation }}
     {%- if comment %}
-    COMMENT = '{{ comment }}'
+    COMMENT = '{{ comment | replace("'", "''") }}'
     {%- endif %}
     {%- if profile %}
     PROFILE = '{{ profile }}'

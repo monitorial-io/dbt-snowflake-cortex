@@ -13,21 +13,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-{% macro snowflake__get_alter_agent_comment_and_profile_sql(relation, comment, profile) -%}
-    alter agent {{ relation }}
-    SET {%- if comment %}
-        COMMENT = '{{ comment | replace("'", "''") }}'
-    {%- endif %}
-    {%- if profile %}
-        PROFILE = '{{ profile }}'
-    {%- endif %};
-{%- endmacro %}
-
-
-{% macro snowflake__get_alter_agent_specification_sql(relation, specification) -%}
-    alter agent {{ relation }}
-    modify live vesion set specification =
-     $$
-{{ specification | indent(4, false) }}
-    $$;
-{%- endmacro %}
+{% macro snowflake__get_rename_cortex_search_sql(relation, new_name) %}
+    alter cortex search service if exists {{ relation }} rename to {{ new_name }};
+{% endmacro %}
