@@ -7,10 +7,25 @@ This [dbt](https://github.com/dbt-labs/dbt) package contains snowflake cortex re
 ----
 
 ## Installation Instructions
-Add the following to your packages.yml file
+Add the following to your `packages.yml` file:
+
+**Via dbt Hub / Package Registry:**
+```yaml
+packages:
+  - package: monitorial-io/dbt_monitorial_snowflake_cortex
+    version: [">=1.1.0", "<2.0.0"]
 ```
-  - git: https://github.com/monitorial-io/dbt-snowflake-cortex.git
-    revision: "1.0.0"
+
+**Via Git:**
+```yaml
+packages:
+  - git: "https://github.com/monitorial-io/dbt-snowflake-cortex.git"
+    revision: 1.2.0
+```
+
+Then run:
+```bash
+dbt deps
 ```
 
 ## Contents
