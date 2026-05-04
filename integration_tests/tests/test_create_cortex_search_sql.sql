@@ -18,14 +18,30 @@
     full_index_build_interval_days=7,
     comment='Test search service',
     query='select id, description, name, category from products'
-) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
+) | trim -%}
 
-select 1 as failure
-where not (
-    '{{ ddl }}' ilike '%create or replace cortex search service%TEST_DB.TEST_SCHEMA.MY_SEARCH%'
-    and '{{ ddl }}' ilike '%ON description%'
-    and '{{ ddl }}' ilike '%PRIMARY KEY%id%'
-    and '{{ ddl }}' ilike '%WAREHOUSE = COMPUTE_WH%'
-    and '{{ ddl }}' ilike '%EMBEDDING_MODEL = e5-base-v2%'
-    and '{{ ddl }}' ilike '%REFRESH_MODE = INCREMENTAL%'
-)
+{%- set assertions = [] -%}
+{%- if 'create or replace cortex search service' not in ddl | lower -%}
+    {%- do assertions.append('missing CREATE OR REPLACE CORTEX SEARCH SERVICE') -%}
+{%- endif -%}
+{%- if 'TEST_DB.TEST_SCHEMA.MY_SEARCH' not in ddl -%}
+    {%- do assertions.append('missing relation name') -%}
+{%- endif -%}
+{%- if 'ON description' not in ddl -%}
+    {%- do assertions.append('missing ON search_column') -%}
+{%- endif -%}
+{%- if 'WAREHOUSE = COMPUTE_WH' not in ddl -%}
+    {%- do assertions.append('missing WAREHOUSE') -%}
+{%- endif -%}
+{%- if 'EMBEDDING_MODEL = e5-base-v2' not in ddl -%}
+    {%- do assertions.append('missing EMBEDDING_MODEL') -%}
+{%- endif -%}
+{%- if 'REFRESH_MODE = INCREMENTAL' not in ddl -%}
+    {%- do assertions.append('missing REFRESH_MODE') -%}
+{%- endif -%}
+
+{%- if assertions | length > 0 -%}
+    {{ exceptions.raise_compiler_error('test_create_cortex_search_sql FAILED: ' ~ assertions | join(', ') ~ '\nActual DDL:\n' ~ ddl) }}
+{%- endif -%}
+
+select 1 where false

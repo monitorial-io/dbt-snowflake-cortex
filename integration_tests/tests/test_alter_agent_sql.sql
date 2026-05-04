@@ -8,12 +8,27 @@
     relation='TEST_DB.TEST_SCHEMA.MY_AGENT',
     comment='Updated comment',
     profile='new_profile'
-) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
+) | trim -%}
 
-select 1 as failure
-where not (
-    '{{ ddl }}' ilike '%alter agent%TEST_DB.TEST_SCHEMA.MY_AGENT%'
-    and '{{ ddl }}' ilike '%SET%'
-    and '{{ ddl }}' ilike '%COMMENT%'
-    and '{{ ddl }}' ilike '%PROFILE%'
-)
+{%- set assertions = [] -%}
+{%- if 'alter agent' not in ddl | lower -%}
+    {%- do assertions.append('missing ALTER AGENT') -%}
+{%- endif -%}
+{%- if 'TEST_DB.TEST_SCHEMA.MY_AGENT' not in ddl -%}
+    {%- do assertions.append('missing relation name') -%}
+{%- endif -%}
+{%- if 'SET' not in ddl -%}
+    {%- do assertions.append('missing SET') -%}
+{%- endif -%}
+{%- if 'COMMENT' not in ddl -%}
+    {%- do assertions.append('missing COMMENT') -%}
+{%- endif -%}
+{%- if 'PROFILE' not in ddl -%}
+    {%- do assertions.append('missing PROFILE') -%}
+{%- endif -%}
+
+{%- if assertions | length > 0 -%}
+    {{ exceptions.raise_compiler_error('test_alter_agent_sql FAILED: ' ~ assertions | join(', ') ~ '\nActual DDL:\n' ~ ddl) }}
+{%- endif -%}
+
+select 1 where false

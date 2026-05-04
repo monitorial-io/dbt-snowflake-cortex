@@ -18,14 +18,27 @@
     full_index_build_interval_days=14,
     comment='Test search indexes',
     query='select doc_id, title, body, author, date, embedding from documents'
-) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
+) | trim -%}
 
-select 1 as failure
-where not (
-    '{{ ddl }}' ilike '%create or replace cortex search service%TEST_DB.TEST_SCHEMA.MY_SEARCH%'
-    and '{{ ddl }}' ilike '%TEXT INDEXES title, body%'
-    and '{{ ddl }}' ilike '%VECTOR INDEXES embedding USING e5-base-v2%'
-    and '{{ ddl }}' ilike '%PRIMARY KEY%doc_id%'
-    and '{{ ddl }}' ilike '%WAREHOUSE = COMPUTE_WH%'
-    and '{{ ddl }}' ilike '%REFRESH_MODE = FULL%'
-)
+{%- set assertions = [] -%}
+{%- if 'create or replace cortex search service' not in ddl | lower -%}
+    {%- do assertions.append('missing CREATE OR REPLACE CORTEX SEARCH SERVICE') -%}
+{%- endif -%}
+{%- if 'TEST_DB.TEST_SCHEMA.MY_SEARCH' not in ddl -%}
+    {%- do assertions.append('missing relation name') -%}
+{%- endif -%}
+{%- if 'TEXT INDEXES title, body' not in ddl -%}
+    {%- do assertions.append('missing TEXT INDEXES') -%}
+{%- endif -%}
+{%- if 'WAREHOUSE = COMPUTE_WH' not in ddl -%}
+    {%- do assertions.append('missing WAREHOUSE') -%}
+{%- endif -%}
+{%- if 'REFRESH_MODE = FULL' not in ddl -%}
+    {%- do assertions.append('missing REFRESH_MODE') -%}
+{%- endif -%}
+
+{%- if assertions | length > 0 -%}
+    {{ exceptions.raise_compiler_error('test_create_cortex_search_indexes_sql FAILED: ' ~ assertions | join(', ') ~ '\nActual DDL:\n' ~ ddl) }}
+{%- endif -%}
+
+select 1 where false

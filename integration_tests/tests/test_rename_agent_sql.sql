@@ -7,10 +7,24 @@
 {%- set ddl = dbt_monitorial_snowflake_cortex.snowflake__get_rename_agent_sql(
     relation='TEST_DB.TEST_SCHEMA.MY_AGENT',
     new_name='TEST_DB.TEST_SCHEMA.MY_AGENT_V2'
-) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
+) | trim -%}
 
-select 1 as failure
-where not (
-    '{{ ddl }}' ilike '%alter agent if exists%TEST_DB.TEST_SCHEMA.MY_AGENT%'
-    and '{{ ddl }}' ilike '%rename to%TEST_DB.TEST_SCHEMA.MY_AGENT_V2%'
-)
+{%- set assertions = [] -%}
+{%- if 'alter agent if exists' not in ddl | lower -%}
+    {%- do assertions.append('missing ALTER AGENT IF EXISTS') -%}
+{%- endif -%}
+{%- if 'TEST_DB.TEST_SCHEMA.MY_AGENT' not in ddl -%}
+    {%- do assertions.append('missing source relation name') -%}
+{%- endif -%}
+{%- if 'rename to' not in ddl | lower -%}
+    {%- do assertions.append('missing RENAME TO') -%}
+{%- endif -%}
+{%- if 'TEST_DB.TEST_SCHEMA.MY_AGENT_V2' not in ddl -%}
+    {%- do assertions.append('missing target relation name') -%}
+{%- endif -%}
+
+{%- if assertions | length > 0 -%}
+    {{ exceptions.raise_compiler_error('test_rename_agent_sql FAILED: ' ~ assertions | join(', ') ~ '\nActual DDL:\n' ~ ddl) }}
+{%- endif -%}
+
+select 1 where false
