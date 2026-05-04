@@ -1,0 +1,54 @@
+# Copyright 2026 Monitorial.io
+# SPDX-License-Identifier: Apache-2.0
+
+version: 2
+
+macros:
+  - name: get_grant_cortex_search_ownership
+    description: >
+      Discovers Cortex Search services in the target database not owned by the
+      specified role and generates GRANT OWNERSHIP statements to transfer ownership.
+      Uses SHOW CORTEX SEARCH SERVICES with the pipe operator (->>).
+    docs:
+      show: true
+    arguments:
+      - name: schema_list
+        type: string
+        description: >
+          Formatted SQL list of schema names to check, e.g. 'PUBLIC', 'MY_SCHEMA'.
+          Produced by _grants_format_list.
+      - name: role_name
+        type: string
+        description: The role to grant ownership to.
+
+  - name: grant_cortex_search_usage
+    description: >
+      Public entry-point macro to manage USAGE grants on Cortex Search services
+      across all eligible schemas. Collects schemas and roles, then iterates
+      over each schema delegating to _grant_cortex_search_usage_specific.
+    docs:
+      show: true
+    arguments:
+      - name: exclude_schemas
+        type: list
+        description: >
+          List of schema names to exclude from processing.
+          INFORMATION_SCHEMA is always excluded automatically.
+      - name: grant_roles
+        type: list
+        description: List of role names to grant USAGE to.
+
+  - name: _grant_cortex_search_usage_specific
+    description: >
+      Per-schema macro that enumerates Cortex Search services, checks existing
+      grants, revokes stale grants from roles not in the target list, and grants
+      USAGE to roles that are missing it.
+    docs:
+      show: false
+    arguments:
+      - name: schema_name
+        type: string
+        description: The schema to process Cortex Search services in.
+      - name: grant_roles
+        type: list
+        description: List of validated Snowflake role names.

@@ -1,7 +1,7 @@
 # dbt-snowflake-cortex
-The DBT package to support Snowflake Agents as a new materialization.
+The dbt package to support Snowflake Cortex Agents and Cortex Search as custom materializations.
 
-This [dbt](https://github.com/dbt-labs/dbt) package contains snowflake cortex related materalizations and macros that can be (re)used across dbt projects.
+This [dbt](https://github.com/dbt-labs/dbt) package contains Snowflake Cortex related materializations and macros that can be (re)used across dbt projects. Fully compatible with [dbt Projects on Snowflake (dbt Fusion)](https://docs.snowflake.com/en/user-guide/data-engineering/dbt-projects-on-snowflake).
 
 > require-dbt-version: [">=1.9.0", "<2.0.0"]
 ----
@@ -13,14 +13,14 @@ Add the following to your `packages.yml` file:
 ```yaml
 packages:
   - package: monitorial-io/dbt_monitorial_snowflake_cortex
-    version: [">=1.1.0", "<2.0.0"]
+    version: [">=1.3.0", "<2.0.0"]
 ```
 
 **Via Git:**
 ```yaml
 packages:
   - git: "https://github.com/monitorial-io/dbt-snowflake-cortex.git"
-    revision: 1.2.0
+    revision: 1.3.0
 ```
 
 Then run:
@@ -30,15 +30,15 @@ dbt deps
 
 ## Contents
 
-Contains the following materializations for Snowflake:
-* Snowflake Agent
-* Snowflake Cortex Search
+### Materializations
+* **`agent`** - Create and manage Snowflake Cortex Agents
+* **`cortex_search`** - Create and manage Snowflake Cortex Search services (Form 1: ON search_column, Form 2: TEXT INDEXES / VECTOR INDEXES)
 
-Contains the following macros for Snowflake:
-* grant_semantic_views_privileges
-* grant_agent_usage
-* grant_cortex_search_usage
-* grant_cortex_ownership
+### Grant Macros
+* `grant_semantic_views_privileges` - Manage SELECT grants on semantic views
+* `grant_agent_usage` - Manage USAGE grants on agents
+* `grant_cortex_search_usage` - Manage USAGE grants on Cortex Search services
+* `grant_cortex_ownership` - Transfer ownership of all cortex objects to a specified role
 
 ---
 
@@ -120,8 +120,10 @@ For the cleanest approach, you can put the YAML specification directly as the mo
 {{
     config(
         materialized='agent',
-        comment='Description of your agent',
-        profile='{"display_name": "Agent Name", "avatar": "icon.png", "color": "blue"}'
+        meta={
+            'comment': 'Description of your agent',
+            'profile': '{"display_name": "Agent Name", "avatar": "icon.png", "color": "blue"}'
+        }
     )
 }}
 
@@ -157,12 +159,14 @@ dbt run --models my_agent
 
 ## Configuration Parameters
 
+All custom parameters should be nested under the `meta` key in the model config for dbt Fusion (dbt Projects on Snowflake) compatibility. For standard dbt Core users, top-level config keys are also supported as a fallback.
+
 | Parameter                       | Description                                                | Required | Default |
 |---------------------------------|------------------------------------------------------------|----------|---------|
-| `materialized`                  | Must be set to `'agent'`                                   | Yes      | -       |
-| `comment`                       | Description of the agent                                   | No       | None    |
-| `profile`                       | JSON string containing display name, avatar, and color     | No       | None    |
-| `append_environment_to_comment` | Specifies if to append the environment name to the comment | No       | true    |
+| `materialized`                  | Must be set to `'agent'` (top-level config)                | Yes      | -       |
+| `meta.comment`                  | Description of the agent                                   | No       | None    |
+| `meta.profile`                  | JSON string containing display name, avatar, and color     | No       | None    |
+| `meta.append_environment_to_comment` | Specifies if to append the environment name to the comment | No       | true    |
 
 
 ## Profile Object
@@ -212,11 +216,13 @@ Use this form to create a full-text search index on a single text column.
 {{
     config(
         materialized='cortex_search',
-        warehouse='COMPUTE_WH',
-        search_column='description',
-        attributes=['product_name', 'category'],
-        target_lag='1 day',
-        comment='Product catalog search'
+        meta={
+            'warehouse': 'COMPUTE_WH',
+            'search_column': 'description',
+            'attributes': ['product_name', 'category'],
+            'target_lag': '1 day',
+            'comment': 'Product catalog search'
+        }
     )
 }}
 
@@ -235,12 +241,14 @@ Use this form to index multiple text or vector columns. Supply `text_indexes` in
 {{
     config(
         materialized='cortex_search',
-        warehouse='COMPUTE_WH',
-        text_indexes=['title', 'body'],
-        vector_indexes=['embedding'],
-        attributes=['category', 'author'],
-        primary_key=['doc_id'],
-        target_lag='6 hours'
+        meta={
+            'warehouse': 'COMPUTE_WH',
+            'text_indexes': ['title', 'body'],
+            'vector_indexes': ['embedding'],
+            'attributes': ['category', 'author'],
+            'primary_key': ['doc_id'],
+            'target_lag': '6 hours'
+        }
     )
 }}
 
@@ -256,36 +264,38 @@ FROM {{ ref('documents') }}
 
 ## Configuration Parameters
 
+All custom parameters should be nested under the `meta` key in the model config for dbt Fusion (dbt Projects on Snowflake) compatibility. For standard dbt Core users, top-level config keys are also supported as a fallback.
+
 ### Shared parameters
 
-| Parameter                        | Description                                        | Required | Default |
-|----------------------------------|----------------------------------------------------|----------|---------|
-| `materialized`                   | Must be `'cortex_search'`                          | Yes      | -       |
-| `warehouse`                      | Warehouse used to build and refresh the index      | Yes      | -       |
-| `target_lag`                     | Refresh frequency, e.g. `'1 day'`, `'6 hours'`     | Yes      | -       |
-| `attributes`                     | Columns available for filtering/retrieval          | No       | `[]`    |
-| `primary_key`                    | Primary key column(s), e.g. `['id']`               | No       | None    |
-| `refresh_mode`                   | `FULL` or `INCREMENTAL`                            | No       | None    |
-| `initialize`                     | `ON_CREATE` or `ON_SCHEDULE`                       | No       | None    |
-| `full_index_build_interval_days` | Override for full rebuild interval                 | No       | None    |
-| `comment`                        | Description of the service                         | No       | None    |
-| `create_or_replace`              | Use `CREATE OR REPLACE` instead of `IF NOT EXISTS` | No       | `false` |
+| Parameter                            | Description                                        | Required | Default |
+|--------------------------------------|----------------------------------------------------|----------|---------|
+| `materialized`                       | Must be `'cortex_search'` (top-level config)       | Yes      | -       |
+| `meta.warehouse`                     | Warehouse used to build and refresh the index      | Yes      | -       |
+| `meta.target_lag`                    | Refresh frequency, e.g. `'1 day'`, `'6 hours'`     | Yes      | -       |
+| `meta.attributes`                    | Columns available for filtering/retrieval          | No       | `[]`    |
+| `meta.primary_key`                   | Primary key column(s), e.g. `['id']`               | No       | None    |
+| `meta.refresh_mode`                  | `FULL` or `INCREMENTAL`                            | No       | None    |
+| `meta.initialize`                    | `ON_CREATE` or `ON_SCHEDULE`                       | No       | None    |
+| `meta.full_index_build_interval_days` | Override for full rebuild interval                 | No       | None    |
+| `meta.comment`                       | Description of the service                         | No       | None    |
+| `meta.create_or_replace`             | Use `CREATE OR REPLACE` instead of `IF NOT EXISTS` | No       | `false` |
 
 ### Form 1 only
 
-| Parameter         | Description                                                 | Required |
-|-------------------|-------------------------------------------------------------|----------|
-| `search_column`   | Column to build the full-text search index on (`ON` clause) | Yes      |
-| `embedding_model` | Embedding model name                                        | No       |
+| Parameter               | Description                                                 | Required |
+|-------------------------|-------------------------------------------------------------|----------|
+| `meta.search_column`    | Column to build the full-text search index on (`ON` clause) | Yes      |
+| `meta.embedding_model`  | Embedding model name                                        | No       |
 
 ### Form 2 only
 
-| Parameter        | Description                             | Required |
-|------------------|-----------------------------------------|----------|
-| `text_indexes`   | Text column(s) to index                 | Yes      |
-| `vector_indexes` | Vector column specification(s) to index | No       |
+| Parameter              | Description                             | Required |
+|------------------------|-----------------------------------------|----------|
+| `meta.text_indexes`    | Text column(s) to index                 | Yes      |
+| `meta.vector_indexes`  | Vector column specification(s) to index | No       |
 
-> `search_column` and `text_indexes` are mutually exclusive.
+> `meta.search_column` and `meta.text_indexes` are mutually exclusive.
 
 ## Alter behaviour
 

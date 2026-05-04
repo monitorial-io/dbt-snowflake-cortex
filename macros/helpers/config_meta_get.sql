@@ -13,21 +13,13 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-{% macro snowflake__get_alter_agent_comment_and_profile_sql(relation, comment, profile) -%}
-    alter agent {{ relation }}
-    SET {%- if comment %}
-        COMMENT = '{{ comment | replace("'", "''") }}'
-    {%- endif %}
-    {%- if profile %}
-        PROFILE = '{{ profile }}'
-    {%- endif %};
-{%- endmacro %}
-
-
-{% macro snowflake__get_alter_agent_specification_sql(relation, specification) -%}
-    alter agent {{ relation }}
-    modify live version set specification =
-     $$
-{{ specification | indent(4, false) }}
-    $$;
-{%- endmacro %}
+{% macro config_meta_get(key, default=none) %}
+    {%- set meta = config.get("meta", none) -%}
+    {%- if meta is not none and meta is mapping and key in meta -%}
+        {{ return(meta[key]) }}
+    {%- elif execute -%}
+        {{ return(config.get(key, default)) }}
+    {%- else -%}
+        {{ return(default) }}
+    {%- endif -%}
+{% endmacro %}

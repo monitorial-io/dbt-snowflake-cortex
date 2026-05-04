@@ -1,5 +1,15 @@
 # dbt-snowflake-cortex Changelog
 
+## 1.3.0 - 2026-05-04 - dbt Fusion Compatibility, Documentation & CI
+
+* verified all macros for dbt Fusion (dbt Projects on Snowflake) compatibility
+* moved custom config parameters to `meta` for dbt Fusion compatibility, with fallback to top-level config for standard dbt Core users
+* fixed typo in `snowflake__get_alter_agent_specification_sql` (`vesion` -> `version`)
+* added macro property YML files for all 25 macros with full argument documentation
+* added integration test suite with 8 singular tests covering DDL generation macros
+* added GitHub Actions CI pipeline with lint, compile/parse, and integration test jobs
+* added CODEOWNERS file
+
 ## 1.1.0 - 2026-03-20 - Snowflake Cortex Search Service
 
 * added `cortex_search` materialization to create and manage Snowflake Cortex Search services

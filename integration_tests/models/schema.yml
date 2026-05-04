@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: test_agent
+    description: Integration test model for the agent materialization.
+
+  - name: test_cortex_search
+    description: Integration test model for the cortex_search materialization (Form 1).

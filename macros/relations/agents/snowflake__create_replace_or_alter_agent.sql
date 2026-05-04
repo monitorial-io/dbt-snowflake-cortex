@@ -14,11 +14,11 @@
 -- limitations under the License.
 
 {% macro snowflake__create_replace_or_alter_agent() %}
-    {%- set comment = config.get('comment', default=none) -%}
-    {%- set profile = config.get('profile', default=none) -%}
-    {%- set specification = config.get('specification', default=none) -%}
-    {%- set create_or_replace = config.get('create_or_replace', default=false) -%}
-    {%- set append_environment_to_comment = config.get('append_environment_to_comment', default=true) -%}
+    {%- set comment = dbt_monitorial_snowflake_cortex.config_meta_get('comment') -%}
+    {%- set profile = dbt_monitorial_snowflake_cortex.config_meta_get('profile') -%}
+    {%- set specification = dbt_monitorial_snowflake_cortex.config_meta_get('specification') -%}
+    {%- set create_or_replace = dbt_monitorial_snowflake_cortex.config_meta_get('create_or_replace', false) -%}
+    {%- set append_environment_to_comment = dbt_monitorial_snowflake_cortex.config_meta_get('append_environment_to_comment', true) -%}
     {%- set identifier = model['alias'] -%}
 
     {%- if not specification -%}

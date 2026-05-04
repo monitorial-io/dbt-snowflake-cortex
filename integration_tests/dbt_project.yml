@@ -1,0 +1,19 @@
+# Copyright 2026 Monitorial.io
+# SPDX-License-Identifier: Apache-2.0
+
+name: 'dbt_monitorial_snowflake_cortex_integration_tests'
+version: '1.0.0'
+config-version: 2
+
+require-dbt-version: [">=1.9.0", "<3.0.0"]
+
+profile: 'integration_tests'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+
+clean-targets:
+  - "target"
+  - "dbt_packages"

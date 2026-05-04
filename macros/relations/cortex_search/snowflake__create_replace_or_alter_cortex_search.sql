@@ -15,24 +15,24 @@
 
 {% macro snowflake__create_replace_or_alter_cortex_search() %}
     {# Shared params #}
-    {%- set comment                       = config.get('comment',                       default=none) -%}
-    {%- set attributes                    = config.get('attributes',                    default=[]) -%}
-    {%- set primary_key                   = config.get('primary_key',                   default=none) -%}
-    {%- set warehouse                     = config.get('warehouse',                     default=none) -%}
-    {%- set target_lag                    = config.get('target_lag',                    default=none) -%}
-    {%- set refresh_mode                  = config.get('refresh_mode',                  default=none) -%}
-    {%- set initialize                    = config.get('initialize',                    default=none) -%}
-    {%- set full_index_build_interval_days = config.get('full_index_build_interval_days', default=none) -%}
-    {%- set create_or_replace             = config.get('create_or_replace',             default=false) -%}
+    {%- set comment                       = dbt_monitorial_snowflake_cortex.config_meta_get('comment') -%}
+    {%- set attributes                    = dbt_monitorial_snowflake_cortex.config_meta_get('attributes', []) -%}
+    {%- set primary_key                   = dbt_monitorial_snowflake_cortex.config_meta_get('primary_key') -%}
+    {%- set warehouse                     = dbt_monitorial_snowflake_cortex.config_meta_get('warehouse') -%}
+    {%- set target_lag                    = dbt_monitorial_snowflake_cortex.config_meta_get('target_lag') -%}
+    {%- set refresh_mode                  = dbt_monitorial_snowflake_cortex.config_meta_get('refresh_mode') -%}
+    {%- set initialize                    = dbt_monitorial_snowflake_cortex.config_meta_get('initialize') -%}
+    {%- set full_index_build_interval_days = dbt_monitorial_snowflake_cortex.config_meta_get('full_index_build_interval_days') -%}
+    {%- set create_or_replace             = dbt_monitorial_snowflake_cortex.config_meta_get('create_or_replace', false) -%}
     {%- set identifier                    = model['alias'] -%}
 
     {# Form 1 params (ON <search_column>) #}
-    {%- set search_column   = config.get('search_column',   default=none) -%}
-    {%- set embedding_model = config.get('embedding_model', default=none) -%}
+    {%- set search_column   = dbt_monitorial_snowflake_cortex.config_meta_get('search_column') -%}
+    {%- set embedding_model = dbt_monitorial_snowflake_cortex.config_meta_get('embedding_model') -%}
 
     {# Form 2 params (TEXT INDEXES / VECTOR INDEXES) #}
-    {%- set text_indexes   = config.get('text_indexes',   default=none) -%}
-    {%- set vector_indexes = config.get('vector_indexes', default=none) -%}
+    {%- set text_indexes   = dbt_monitorial_snowflake_cortex.config_meta_get('text_indexes') -%}
+    {%- set vector_indexes = dbt_monitorial_snowflake_cortex.config_meta_get('vector_indexes') -%}
 
     {# Determine which form to use #}
     {%- set use_form2 = text_indexes and text_indexes | length > 0 -%}

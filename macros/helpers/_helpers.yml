@@ -1,0 +1,21 @@
+# Copyright 2026 Monitorial.io
+# SPDX-License-Identifier: Apache-2.0
+
+version: 2
+
+macros:
+  - name: config_meta_get
+    description: >
+      Helper macro to retrieve a config value with dbt Fusion compatibility.
+      Checks the `meta` dict first (required for dbt Projects on Snowflake),
+      then falls back to a top-level config key (standard dbt Core). Returns
+      the provided default if the key is not found in either location.
+    docs:
+      show: true
+    arguments:
+      - name: key
+        type: string
+        description: The config key to look up.
+      - name: default
+        type: any
+        description: Value to return if the key is not found. Defaults to none.
