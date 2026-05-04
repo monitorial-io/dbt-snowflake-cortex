@@ -166,7 +166,7 @@ All custom parameters should be nested under the `meta` key in the model config 
 | `materialized`                  | Must be set to `'agent'` (top-level config)                | Yes      | -       |
 | `meta.comment`                  | Description of the agent                                   | No       | None    |
 | `meta.profile`                  | JSON string containing display name, avatar, and color     | No       | None    |
-| `meta.append_environment_to_comment` | Specifies if to append the environment name to the comment | No       | true    |
+| `meta.append_environment_to_comment` | Specifies whether to append the environment name to the comment | No       | true    |
 
 
 ## Profile Object
