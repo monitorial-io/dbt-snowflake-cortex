@@ -3,7 +3,7 @@ The dbt package to support Snowflake Cortex Agents and Cortex Search as custom m
 
 This [dbt](https://github.com/dbt-labs/dbt) package contains Snowflake Cortex related materializations and macros that can be (re)used across dbt projects. Fully compatible with [dbt Projects on Snowflake (dbt Fusion)](https://docs.snowflake.com/en/user-guide/data-engineering/dbt-projects-on-snowflake).
 
-> require-dbt-version: [">=1.9.0", "<2.0.0"]
+> require-dbt-version: [">=1.9.4", "<3.0.0"]
 ----
 
 ## Installation Instructions
