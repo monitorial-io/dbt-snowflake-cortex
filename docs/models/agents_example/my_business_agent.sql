@@ -1,8 +1,10 @@
 {{
     config(
         materialized='agent',
-        comment='Example business agent',
-        profile='{"display_name": "Business Agent", "avatar": "icon.png", "color": "blue"}'
+        meta={
+            'comment': 'Example business agent',
+            'profile': '{"display_name": "Business Agent", "avatar": "icon.png", "color": "blue"}'
+        }
     )
 }}
 

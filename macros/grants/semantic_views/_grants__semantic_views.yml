@@ -1,0 +1,54 @@
+# Copyright 2026 Monitorial.io
+# SPDX-License-Identifier: Apache-2.0
+
+version: 2
+
+macros:
+  - name: grant_semantic_view_ownership
+    description: >
+      Discovers semantic views in the target database not owned by the specified
+      role and generates GRANT OWNERSHIP statements to transfer ownership.
+      Uses SHOW SEMANTIC VIEWS with the pipe operator (->>).
+    docs:
+      show: true
+    arguments:
+      - name: schema_list
+        type: string
+        description: >
+          Formatted SQL list of schema names to check, e.g. 'PUBLIC', 'MY_SCHEMA'.
+          Produced by _grants_format_list.
+      - name: role_name
+        type: string
+        description: The role to grant ownership to.
+
+  - name: grant_semantic_views_privileges
+    description: >
+      Public entry-point macro to manage SELECT grants on semantic views
+      across all eligible schemas. Collects schemas and roles, then iterates
+      over each schema delegating to _grant_semantic_views_privileges_specific.
+    docs:
+      show: true
+    arguments:
+      - name: exclude_schemas
+        type: list
+        description: >
+          List of schema names to exclude from processing.
+          INFORMATION_SCHEMA is always excluded automatically.
+      - name: grant_roles
+        type: list
+        description: List of role names to grant SELECT to.
+
+  - name: _grant_semantic_views_privileges_specific
+    description: >
+      Per-schema macro that enumerates semantic views, checks existing grants,
+      revokes stale SELECT grants from roles not in the target list, and grants
+      SELECT to roles that are missing it.
+    docs:
+      show: false
+    arguments:
+      - name: schema_name
+        type: string
+        description: The schema to process semantic views in.
+      - name: grant_roles
+        type: list
+        description: List of validated Snowflake role names.

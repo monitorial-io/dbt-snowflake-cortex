@@ -39,7 +39,8 @@
 
     {% set formatted_schema_list = dbt_monitorial_snowflake_cortex._grants_format_list(include_schemas) %}
     {% set queries = [] %}
-    {% do log('Verifying Ownership rights across ' ~ (include_schemas | length) ~ ' schemas in ' ~ target.database ~ ' for role ' ~ role_name, info=True) %}
+    {% do log('Verifying Ownership rights across ' ~ (include_schemas | length)
+        ~ ' schemas in ' ~ target.database ~ ' for role ' ~ role_name, info=True) %}
 
     {% do queries.extend(dbt_monitorial_snowflake_cortex.grant_semantic_view_ownership(formatted_schema_list, role_name)) %}
     {% do queries.extend(dbt_monitorial_snowflake_cortex.get_grant_agent_ownership(formatted_schema_list, role_name)) %}

@@ -26,7 +26,7 @@
 
 {% macro snowflake__get_alter_agent_specification_sql(relation, specification) -%}
     alter agent {{ relation }}
-    modify live vesion set specification =
+    modify live version set specification =
      $$
 {{ specification | indent(4, false) }}
     $$;

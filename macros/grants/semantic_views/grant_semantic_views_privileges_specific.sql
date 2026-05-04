@@ -1,4 +1,3 @@
-
 -- Copyright 2026 Monitorial.io
 -- SPDX-License-Identifier: Apache-2.0
 --

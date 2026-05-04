@@ -13,6 +13,13 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-{% macro snowflake__get_rename_cortex_search_sql(relation, new_name) %}
-    alter cortex search service if exists {{ relation }} rename to {{ new_name }};
+{% macro config_meta_get(key, default=none) %}
+    {%- set meta = config.get("meta", none) -%}
+    {%- if meta is not none and meta is mapping and key in meta -%}
+        {{ return(meta[key]) }}
+    {%- elif execute -%}
+        {{ return(config.get(key, default)) }}
+    {%- else -%}
+        {{ return(default) }}
+    {%- endif -%}
 {% endmacro %}

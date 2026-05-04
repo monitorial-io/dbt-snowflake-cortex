@@ -1,0 +1,11 @@
+[sqlfluff]
+dialect = snowflake
+templater = jinja
+max_line_length = 150
+exclude_rules = LT02
+
+[sqlfluff:rules:layout.long_lines]
+max_line_length = 150
+
+[sqlfluff:layout:type:comma]
+line_position = trailing

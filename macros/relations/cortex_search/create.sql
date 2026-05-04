@@ -13,7 +13,12 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-{% macro snowflake__get_create_cortex_search_sql(relation, create_statement, search_column, primary_key, attributes, warehouse, target_lag, embedding_model, refresh_mode, initialize, full_index_build_interval_days, comment, query) -%}
+{% macro snowflake__get_create_cortex_search_sql(
+    relation, create_statement, search_column, primary_key,
+    attributes, warehouse, target_lag, embedding_model,
+    refresh_mode, initialize, full_index_build_interval_days,
+    comment, query
+) -%}
 {#-
 --  Produce DDL for CREATE CORTEX SEARCH SERVICE (Form 1: ON <search_column>).
 --
@@ -64,7 +69,12 @@
 {%- endmacro %}
 
 
-{% macro snowflake__get_create_cortex_search_indexes_sql(relation, create_statement, text_indexes, vector_indexes, primary_key, attributes, warehouse, target_lag, refresh_mode, initialize, full_index_build_interval_days, comment, query) -%}
+{% macro snowflake__get_create_cortex_search_indexes_sql(
+    relation, create_statement, text_indexes, vector_indexes,
+    primary_key, attributes, warehouse, target_lag,
+    refresh_mode, initialize, full_index_build_interval_days,
+    comment, query
+) -%}
 {#-
 --  Produce DDL for CREATE CORTEX SEARCH SERVICE (Form 2: TEXT INDEXES / VECTOR INDEXES).
 --

@@ -1,0 +1,60 @@
+# Copyright 2026 Monitorial.io
+# SPDX-License-Identifier: Apache-2.0
+
+version: 2
+
+macros:
+  - name: grant_cortex_ownership
+    description: >
+      Master ownership orchestrator macro. Collects eligible schemas (excluding
+      INFORMATION_SCHEMA and user-specified schemas), then delegates to
+      grant_semantic_view_ownership, get_grant_agent_ownership, and
+      get_grant_cortex_search_ownership to transfer ownership of all cortex
+      objects to the specified role.
+    docs:
+      show: true
+    arguments:
+      - name: exclude_schemas
+        type: list
+        description: >
+          List of schema names to exclude from ownership processing.
+          INFORMATION_SCHEMA is always excluded automatically.
+      - name: role_name
+        type: string
+        description: The role to grant ownership to.
+
+  - name: _grants_collect_roles
+    description: >
+      Helper macro that runs SHOW ROLES and filters the results to only include
+      roles present in the provided grant_roles list.
+    docs:
+      show: false
+    arguments:
+      - name: grant_roles
+        type: list
+        description: List of role names to filter for.
+
+  - name: _grants_collect_schemas
+    description: >
+      Helper macro that runs SHOW SCHEMAS in the target database and returns
+      schema names excluding INFORMATION_SCHEMA and any user-specified schemas.
+    docs:
+      show: false
+    arguments:
+      - name: exclude_schemas
+        type: list
+        description: >
+          List of schema names to exclude. INFORMATION_SCHEMA is always
+          excluded automatically.
+
+  - name: _grants_format_list
+    description: >
+      Helper macro that formats a list of string values into a SQL-safe
+      comma-separated string with single quotes, e.g. 'A', 'B', 'C'.
+      Handles escaping of single quotes within values.
+    docs:
+      show: false
+    arguments:
+      - name: list_values
+        type: list
+        description: List of string values to format.

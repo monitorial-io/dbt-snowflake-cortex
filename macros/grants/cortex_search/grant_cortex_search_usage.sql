@@ -35,7 +35,8 @@
     {% endif %}
 
     {% set snowflake_roles = dbt_monitorial_snowflake_cortex._grants_collect_roles(grant_roles) %}
-    {% do log('grant_cortex_search_usage: processing ' ~ (include_schemas | length) ~ ' schemas for roles ' ~ (snowflake_roles | join(', ')), info=True) %}
+    {% do log('grant_cortex_search_usage: processing ' ~ (include_schemas | length)
+        ~ ' schemas for roles ' ~ (snowflake_roles | join(', ')), info=True) %}
     {% for schema_name in include_schemas %}
         {% do dbt_monitorial_snowflake_cortex._grant_cortex_search_usage_specific(schema_name, snowflake_roles) %}
     {% endfor %}
