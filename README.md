@@ -38,7 +38,7 @@ dbt deps
 * `grant_semantic_views_privileges` - Manage SELECT grants on semantic views
 * `grant_agent_usage` - Manage USAGE grants on agents
 * `grant_cortex_search_usage` - Manage USAGE grants on Cortex Search services
-* `grant_cortex_ownership` - Transfer ownership of all cortex objects to a specified role
+* `grant_cortex_ownership` - Transfer ownership of all Cortex objects to a specified role
 
 ---
 
