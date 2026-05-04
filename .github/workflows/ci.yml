@@ -27,10 +27,8 @@ jobs:
       - name: Install dbt-snowflake and SQLFluff
         run: pip install dbt-snowflake>=1.9.4 sqlfluff sqlfluff-templater-dbt
 
-      - name: Write private key
-        run: |
-          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > /tmp/rsa_key.p8
-          chmod 600 /tmp/rsa_key.p8
+      - name: Create placeholder private key file
+        run: openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out /tmp/rsa_key.p8
 
       - name: Create dbt profiles.yml
         run: |
@@ -43,7 +41,7 @@ jobs:
             echo "      account: dummy"
             echo "      user: dummy"
             echo "      authenticator: snowflake_jwt"
-            echo "      private_key_path: /tmp/snowflake_key.p8"
+            echo "      private_key_path: /tmp/rsa_key.p8"
             echo "      role: dummy"
             echo "      warehouse: dummy"
             echo "      database: dummy"
