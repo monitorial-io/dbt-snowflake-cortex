@@ -39,7 +39,10 @@
 
     {# Validate required params #}
     {%- if not use_form2 and not search_column -%}
-        {{ exceptions.raise_compiler_error("'search_column' is required for cortex_search materialization when not using text_indexes/vector_indexes form.") }}
+        {{ exceptions.raise_compiler_error(
+            "'search_column' is required for cortex_search materialization "
+            ~ "when not using text_indexes/vector_indexes form."
+        ) }}
     {%- endif -%}
     {%- if use_form2 and search_column -%}
         {{ exceptions.raise_compiler_error("'search_column' and 'text_indexes' are mutually exclusive. Use one form or the other.") }}
@@ -54,7 +57,10 @@
     {# The model SQL body is always the AS query, enabling ref() / source() for lineage #}
     {%- set query = sql -%}
     {%- if not query or query | trim == '' -%}
-        {{ exceptions.raise_compiler_error("cortex_search models must contain a SELECT query as the SQL body. Use ref() or source() to define the source data.") }}
+        {{ exceptions.raise_compiler_error(
+            "cortex_search models must contain a SELECT query as the SQL body. "
+            ~ "Use ref() or source() to define the source data."
+        ) }}
     {%- endif -%}
 
     {# Form 2 does not support IF NOT EXISTS #}

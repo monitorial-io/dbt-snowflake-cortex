@@ -39,6 +39,5 @@
 
 {%- if assertions | length > 0 -%}
     {{ exceptions.raise_compiler_error('test_create_cortex_search_indexes_sql FAILED: ' ~ assertions | join(', ') ~ '\nActual DDL:\n' ~ ddl) }}
-{%- endif -%}
-
-select 1 where false
+{%- endif %}
+select 1 where 1 = 0

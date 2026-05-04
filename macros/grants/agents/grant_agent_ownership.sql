@@ -36,5 +36,3 @@
     {% endif %}
     {% do return(statements) %}
 {% endmacro %}
-
-

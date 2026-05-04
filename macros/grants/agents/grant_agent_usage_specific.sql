@@ -28,7 +28,7 @@
         {% for agent in agents %}
             {% set agent_name = target.database ~ "." ~ schema_name ~ "." ~ agent[1] %}
             {% set show_grants_query %}
-                show grants on agent {{ agent_name}};
+                show grants on agent {{ agent_name }};
             {% endset %}
             {% set existing_grants = run_query(show_grants_query) %}
             {% set existing_roles = [] %}

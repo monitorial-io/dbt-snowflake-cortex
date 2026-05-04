@@ -16,6 +16,5 @@
 
 {%- if assertions | length > 0 -%}
     {{ exceptions.raise_compiler_error('test_grants_format_list FAILED: ' ~ assertions | join(', ') ~ '\nActual result:\n' ~ result) }}
-{%- endif -%}
-
-select 1 where false
+{%- endif %}
+select 1 where 1 = 0
