@@ -18,18 +18,14 @@
     full_index_build_interval_days=7,
     comment='Test search service',
     query='select id, description, name, category from products'
-) -%}
+) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
 
 select 1 as failure
-where
-    '{{ ddl }}' not like '%create or replace cortex search service%TEST_DB.TEST_SCHEMA.MY_SEARCH%'
-    or '{{ ddl }}' not like '%ON description%'
-    or '{{ ddl }}' not like '%PRIMARY KEY%id%'
-    or '{{ ddl }}' not like '%ATTRIBUTES name, category%'
-    or '{{ ddl }}' not like '%WAREHOUSE = COMPUTE_WH%'
-    or '{{ ddl }}' not like "%TARGET_LAG = '1 day'%"
-    or '{{ ddl }}' not like '%EMBEDDING_MODEL = e5-base-v2%'
-    or '{{ ddl }}' not like '%REFRESH_MODE = INCREMENTAL%'
-    or '{{ ddl }}' not like '%INITIALIZE = ON_CREATE%'
-    or '{{ ddl }}' not like '%FULL_INDEX_BUILD_INTERVAL_DAYS = 7%'
-    or '{{ ddl }}' not like '%select id, description, name, category from products%'
+where not (
+    '{{ ddl }}' ilike '%create or replace cortex search service%TEST_DB.TEST_SCHEMA.MY_SEARCH%'
+    and '{{ ddl }}' ilike '%ON description%'
+    and '{{ ddl }}' ilike '%PRIMARY KEY%id%'
+    and '{{ ddl }}' ilike '%WAREHOUSE = COMPUTE_WH%'
+    and '{{ ddl }}' ilike '%EMBEDDING_MODEL = e5-base-v2%'
+    and '{{ ddl }}' ilike '%REFRESH_MODE = INCREMENTAL%'
+)

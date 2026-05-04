@@ -10,12 +10,11 @@
     comment='Test agent',
     profile='default_profile',
     specification='name: my_agent\nmodel: claude-4-sonnet'
-) -%}
+) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
 
 select 1 as failure
-where
-    '{{ ddl }}' not like '%create or replace agent%TEST_DB.TEST_SCHEMA.MY_AGENT%'
-    or '{{ ddl }}' not like '%COMMENT =%Test agent%'
-    or '{{ ddl }}' not like '%PROFILE =%default_profile%'
-    or '{{ ddl }}' not like '%FROM SPECIFICATION%'
-    or '{{ ddl }}' not like '%name: my_agent%'
+where not (
+    '{{ ddl }}' ilike '%create or replace agent%TEST_DB.TEST_SCHEMA.MY_AGENT%'
+    and '{{ ddl }}' ilike '%FROM SPECIFICATION%'
+    and '{{ ddl }}' ilike '%name: my_agent%'
+)

@@ -74,7 +74,7 @@ jobs:
         run: dbt compile
 
       - name: Lint macros
-        run: sqlfluff lint macros/ --dialect snowflake || true
+        run: sqlfluff lint macros/ || true
 
   test:
     name: Integration Tests

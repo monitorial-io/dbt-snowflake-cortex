@@ -6,8 +6,9 @@
 
 {%- set ddl = dbt_monitorial_snowflake_cortex.snowflake__get_drop_agent_sql(
     relation='TEST_DB.TEST_SCHEMA.MY_AGENT'
-) -%}
+) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
 
 select 1 as failure
-where
-    '{{ ddl }}' not like '%drop agent if exists%TEST_DB.TEST_SCHEMA.MY_AGENT%'
+where not (
+    '{{ ddl }}' ilike '%drop agent if exists%TEST_DB.TEST_SCHEMA.MY_AGENT%'
+)

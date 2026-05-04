@@ -7,9 +7,10 @@
 {%- set ddl = dbt_monitorial_snowflake_cortex.snowflake__get_rename_agent_sql(
     relation='TEST_DB.TEST_SCHEMA.MY_AGENT',
     new_name='TEST_DB.TEST_SCHEMA.MY_AGENT_V2'
-) -%}
+) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
 
 select 1 as failure
-where
-    '{{ ddl }}' not like '%alter agent if exists%TEST_DB.TEST_SCHEMA.MY_AGENT%'
-    or '{{ ddl }}' not like '%rename to%TEST_DB.TEST_SCHEMA.MY_AGENT_V2%'
+where not (
+    '{{ ddl }}' ilike '%alter agent if exists%TEST_DB.TEST_SCHEMA.MY_AGENT%'
+    and '{{ ddl }}' ilike '%rename to%TEST_DB.TEST_SCHEMA.MY_AGENT_V2%'
+)

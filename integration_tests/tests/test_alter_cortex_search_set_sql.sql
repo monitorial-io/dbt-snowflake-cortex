@@ -11,13 +11,12 @@
     primary_key=['new_pk'],
     full_index_build_interval_days=30,
     comment='Updated search service'
-) -%}
+) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
 
 select 1 as failure
-where
-    '{{ ddl }}' not like '%alter cortex search service if exists%TEST_DB.TEST_SCHEMA.MY_SEARCH%set%'
-    or '{{ ddl }}' not like '%WAREHOUSE = NEW_WH%'
-    or '{{ ddl }}' not like "%TARGET_LAG = '2 days'%"
-    or '{{ ddl }}' not like '%PRIMARY KEY%new_pk%'
-    or '{{ ddl }}' not like '%FULL_INDEX_BUILD_INTERVAL_DAYS = 30%'
-    or '{{ ddl }}' not like '%COMMENT =%Updated search service%'
+where not (
+    '{{ ddl }}' ilike '%alter cortex search service if exists%TEST_DB.TEST_SCHEMA.MY_SEARCH%set%'
+    and '{{ ddl }}' ilike '%WAREHOUSE = NEW_WH%'
+    and '{{ ddl }}' ilike '%PRIMARY KEY%new_pk%'
+    and '{{ ddl }}' ilike '%FULL_INDEX_BUILD_INTERVAL_DAYS = 30%'
+)

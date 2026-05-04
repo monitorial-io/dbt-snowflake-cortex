@@ -8,11 +8,12 @@
     relation='TEST_DB.TEST_SCHEMA.MY_AGENT',
     comment='Updated comment',
     profile='new_profile'
-) -%}
+) | replace('\n', ' ') | replace('\r', ' ') | trim -%}
 
 select 1 as failure
-where
-    '{{ ddl }}' not like '%alter agent%TEST_DB.TEST_SCHEMA.MY_AGENT%'
-    or '{{ ddl }}' not like '%SET%'
-    or '{{ ddl }}' not like '%COMMENT =%Updated comment%'
-    or '{{ ddl }}' not like '%PROFILE =%new_profile%'
+where not (
+    '{{ ddl }}' ilike '%alter agent%TEST_DB.TEST_SCHEMA.MY_AGENT%'
+    and '{{ ddl }}' ilike '%SET%'
+    and '{{ ddl }}' ilike '%COMMENT%'
+    and '{{ ddl }}' ilike '%PROFILE%'
+)

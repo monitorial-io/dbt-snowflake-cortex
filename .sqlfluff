@@ -1,0 +1,15 @@
+[sqlfluff]
+dialect = snowflake
+templater = dbt
+max_line_length = 150
+exclude_rules = LT02
+
+[sqlfluff:templater:dbt]
+project_dir = integration_tests
+profiles_dir = integration_tests
+
+[sqlfluff:rules:layout.long_lines]
+max_line_length = 150
+
+[sqlfluff:layout:type:comma]
+line_position = trailing
