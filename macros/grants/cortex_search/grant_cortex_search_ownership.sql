@@ -21,16 +21,31 @@
        ->>
        select "schema_name" as schema_name, "name" as service_name
        from $1
-       where "owner" != '{{ role_name | upper }}'
-         and "schema_name" in ({{ schema_list }})
+       where "schema_name" in ({{ schema_list }})
     {% endset %}
     {% set results = run_query(query) %}
     {% set statements = [] %}
     {% if results and results | length > 0 %}
         {% for r in results %}
-            {% do statements.append('grant ownership on cortex search service ' ~ target.database ~ '.' ~ r[0] ~ '.' ~ r[1] ~ ' to role ' ~ role_name ~ ' revoke current grants;') %}
+            {% set fqn = target.database ~ '.' ~ r[0] ~ '.' ~ r[1] %}
+            {% set grants_query %}
+                show grants on cortex search service {{ fqn }}
+                ->>
+                select "grantee_name"
+                from $1
+                where "privilege" = 'OWNERSHIP'
+                  and "grantee_name" = '{{ role_name | upper }}'
+            {% endset %}
+            {% set owner_result = run_query(grants_query) %}
+            {% if not owner_result or owner_result | length == 0 %}
+                {% do statements.append('grant ownership on cortex search service ' ~ fqn ~ ' to role ' ~ role_name ~ ' revoke current grants;') %}
+            {% endif %}
         {% endfor %}
-        {% do log('get_grant_cortex_search_ownership: generated ' ~ (statements | length) ~ ' statements', info=True) %}
+        {% if statements | length > 0 %}
+            {% do log('get_grant_cortex_search_ownership: generated ' ~ (statements | length) ~ ' statements', info=True) %}
+        {% else %}
+            {% do log('get_grant_cortex_search_ownership: no cortex search service ownership changes required', info=True) %}
+        {% endif %}
     {% else %}
         {% do log('get_grant_cortex_search_ownership: no cortex search service ownership changes required', info=True) %}
     {% endif %}

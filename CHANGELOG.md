@@ -1,5 +1,9 @@
 # dbt-snowflake-cortex Changelog
 
+## 1.3.1 - 2026-07-16 - Bug Fix
+
+* fixed `get_grant_cortex_search_ownership` macro failing with `invalid identifier "owner"` because `SHOW CORTEX SEARCH SERVICES` does not expose an `owner` column (unlike `SHOW AGENTS`). Ownership is now checked per-service via `SHOW GRANTS` before granting.
+
 ## 1.3.0 - 2026-05-04 - dbt Fusion Compatibility, Documentation & CI
 
 * verified all macros for dbt Fusion (dbt Projects on Snowflake) compatibility
