@@ -37,7 +37,7 @@
                   and "grantee_name" = '{{ role_name | upper }}'
             {% endset %}
             {% set owner_result = run_query(grants_query) %}
-            {% if owner_result | length == 0 %}
+            {% if not owner_result or owner_result | length == 0 %}
                 {% do statements.append('grant ownership on cortex search service ' ~ fqn ~ ' to role ' ~ role_name ~ ' revoke current grants;') %}
             {% endif %}
         {% endfor %}
