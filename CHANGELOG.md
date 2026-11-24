@@ -1,5 +1,16 @@
 # dbt-snowflake-cortex Changelog
 
+## 1.4.0 - 2026-11-24 - dbt v2 (Fusion) Support & Snowflake Intelligence Integration
+
+* loosened `require-dbt-version` upper bound from 2.0.0 to 3.0.0 so the package can be installed against dbt v2 (Fusion) 2.0.x runtimes
+* fixed a missing comma in the README's recommended `agent` materialization config example
+* documented and added `static_analysis='off'` to the `agent` YAML-as-SQL-content example, which avoids a non-fatal dbt v2 (Fusion) static SQL-analysis warning on model bodies that are YAML rather than SQL
+* added `add_snowflake_intelligence_agent` and `remove_snowflake_intelligence_agent` macros to attach/detach Cortex Agents from a Snowflake Intelligence (CoWork) object
+* added `publish_snowflake_intelligence_agents` macro to attach every agent model opted in via `meta.co_work_targets` for the current target, intended for use as an `on-run-end` hook
+* added `unpublish_snowflake_intelligence_agents` macro to detach every agent model NOT opted in via `meta.co_work_targets` for the current target, intended for use as an `on-run-end` hook
+* added `sync_snowflake_intelligence_agents` macro to call `publish_snowflake_intelligence_agents` then `unpublish_snowflake_intelligence_agents`, fully reconciling CoWork attachments with `meta.co_work_targets`
+* added `test_snowflake_intelligence_lifecycle` integration test exercising add/remove/publish/unpublish/sync end-to-end against a real Snowflake Intelligence object, plus two supporting test agent models (`test_si_agent_opted_in`, `test_si_agent_not_opted_in`)
+
 ## 1.3.1 - 2026-07-16 - Bug Fix
 
 * fixed `get_grant_cortex_search_ownership` macro failing with `invalid identifier "owner"` because `SHOW CORTEX SEARCH SERVICES` does not expose an `owner` column (unlike `SHOW AGENTS`). Ownership is now checked per-service via `SHOW GRANTS` before granting.

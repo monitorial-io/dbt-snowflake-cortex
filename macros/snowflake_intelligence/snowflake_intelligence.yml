@@ -1,0 +1,77 @@
+version: 2
+
+macros:
+  - name: add_snowflake_intelligence_agent
+    description: |
+      Attaches one or more Cortex Agents to a Snowflake Intelligence (CoWork) object via
+      `ALTER SNOWFLAKE INTELLIGENCE <si_name> ADD AGENT <db>.<schema>.<agent>`. Not idempotent in
+      Snowflake (re-adding an already-attached agent raises an error), so this macro checks
+      `SHOW AGENTS IN SNOWFLAKE INTELLIGENCE <si_name>` first and only issues ADD statements for agents
+      that aren't already attached. Duplicate entries within `agents` (including case-variant duplicates)
+      are deduplicated so the same ADD is never queued twice.
+    docs:
+      show: true
+    arguments:
+      - name: si_name
+        type: string
+        description: Name of the Snowflake Intelligence (CoWork) object to modify (e.g. SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT). An account-level object, never qualified with the target database.
+      - name: agents
+        type: List[string]
+        description: List of 'SCHEMA.AGENT_NAME' strings identifying agents in the current target database to attach. Not pre-qualified with the database name -- target.database is prepended automatically.
+
+  - name: remove_snowflake_intelligence_agent
+    description: |
+      Detaches one or more Cortex Agents from a Snowflake Intelligence (CoWork) object via
+      `ALTER SNOWFLAKE INTELLIGENCE <si_name> DROP AGENT <db>.<schema>.<agent>`. Not idempotent in
+      Snowflake (dropping an agent that isn't currently attached raises an error), so this macro checks
+      `SHOW AGENTS IN SNOWFLAKE INTELLIGENCE <si_name>` first and only issues DROP statements for agents
+      currently attached. Duplicate entries within `agents` (including case-variant duplicates) are
+      deduplicated so the same DROP is never queued twice.
+    docs:
+      show: true
+    arguments:
+      - name: si_name
+        type: string
+        description: Name of the Snowflake Intelligence (CoWork) object to modify. An account-level object, never qualified with the target database.
+      - name: agents
+        type: List[string]
+        description: List of 'SCHEMA.AGENT_NAME' strings identifying agents in the current target database to detach. Not pre-qualified with the database name -- target.database is prepended automatically.
+
+  - name: publish_snowflake_intelligence_agents
+    description: |
+      Attaches every agent model (`materialized='agent'`) that opts in to the current target via
+      `config(meta={'co_work_targets': [...]})` to this account's Snowflake Intelligence (CoWork)
+      object. Intended for use as an `on-run-end` hook. The agent list is derived entirely from the
+      manifest (no hardcoded names); an agent model is skipped if it has no `co_work_targets` entry or
+      if `co_work_targets` does not include `target.name`. Delegates the actual attach to
+      `add_snowflake_intelligence_agent`, so it is safe to call on every run (idempotent, additive only
+      -- it never detaches an agent; use `remove_snowflake_intelligence_agent` for that). Logs and exits
+      cleanly if the account has no Snowflake Intelligence object yet.
+    docs:
+      show: true
+    arguments: []
+
+  - name: unpublish_snowflake_intelligence_agents
+    description: |
+      Detaches every agent model (`materialized='agent'`) that does NOT opt in to the current target
+      via `config(meta={'co_work_targets': [...]})` from this account's Snowflake Intelligence
+      (CoWork) object. Mirror image of `publish_snowflake_intelligence_agents`: an agent model is
+      queued for removal if it has no `co_work_targets` entry, or if `co_work_targets` does not
+      include `target.name`. Delegates the actual detach to `remove_snowflake_intelligence_agent`, so
+      it is safe to call on every run (idempotent -- no-ops for agents that aren't currently
+      attached). Logs and exits cleanly if the account has no Snowflake Intelligence object yet.
+    docs:
+      show: true
+    arguments: []
+
+  - name: sync_snowflake_intelligence_agents
+    description: |
+      Reconciles this account's Snowflake Intelligence (CoWork) object with every agent model's
+      `co_work_targets` entry for the current target: calls `publish_snowflake_intelligence_agents`
+      to attach every opted-in agent, then `unpublish_snowflake_intelligence_agents` to detach every
+      agent that is no longer opted in. Intended as a drop-in `on-run-end` hook replacement for
+      `publish_snowflake_intelligence_agents` alone, for projects that also want agents automatically
+      detached from CoWork as their `co_work_targets` entries are removed.
+    docs:
+      show: true
+    arguments: []

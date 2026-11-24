@@ -40,6 +40,13 @@ dbt deps
 * `grant_cortex_search_usage` - Manage USAGE grants on Cortex Search services
 * `grant_cortex_ownership` - Transfer ownership of all Cortex objects to a specified role
 
+### Snowflake Intelligence Macros
+* `add_snowflake_intelligence_agent` - Attach one or more Cortex Agents to a Snowflake Intelligence (CoWork) object
+* `remove_snowflake_intelligence_agent` - Detach one or more Cortex Agents from a Snowflake Intelligence (CoWork) object
+* `publish_snowflake_intelligence_agents` - Attach every agent model opted in via `meta.co_work_targets` for the current target (intended as an `on-run-end` hook)
+* `unpublish_snowflake_intelligence_agents` - Detach every agent model NOT opted in via `meta.co_work_targets` for the current target (intended as an `on-run-end` hook)
+* `sync_snowflake_intelligence_agents` - Calls `publish_snowflake_intelligence_agents` then `unpublish_snowflake_intelligence_agents` to fully reconcile CoWork attachments with `meta.co_work_targets` (intended as an `on-run-end` hook)
+
 ---
 
 ## Macro Reference
@@ -120,6 +127,7 @@ For the cleanest approach, you can put the YAML specification directly as the mo
 {{
     config(
         materialized='agent',
+        static_analysis='off',
         meta={
             'comment': 'Description of your agent',
             'profile': '{"display_name": "Agent Name", "avatar": "icon.png", "color": "blue"}'
@@ -167,6 +175,7 @@ All custom parameters should be nested under the `meta` key in the model config 
 | `meta.comment`                  | Description of the agent                                   | No       | None    |
 | `meta.profile`                  | JSON string containing display name, avatar, and color     | No       | None    |
 | `meta.append_environment_to_comment` | Specifies whether to append the environment name to the comment | No       | true    |
+| `meta.co_work_targets`          | List of target names (e.g. `['prod']`) for which this agent should be attached to the account's Snowflake Intelligence (CoWork) object. See [Snowflake Intelligence Integration](#snowflake-intelligence-integration). | No | `[]` (not attached to any target) |
 
 
 ## Profile Object
@@ -326,3 +335,117 @@ These macros are available for use in run-operations:
 - Appropriate privileges to create Cortex Search services in the target schema
 - Access to the source table or view specified in configuration
 - Valid warehouse with appropriate compute resources
+
+# Snowflake Intelligence Integration
+
+These macros attach and detach Cortex Agents from this account's Snowflake Intelligence (CoWork) object.
+`ALTER SNOWFLAKE INTELLIGENCE ... ADD/DROP AGENT` is not idempotent in Snowflake -- adding an
+already-attached agent, or dropping one that isn't attached, raises an error -- so each macro checks
+`SHOW AGENTS IN SNOWFLAKE INTELLIGENCE` first and only issues the statements that are actually needed.
+
+## add_snowflake_intelligence_agent
+**Description:**
+Attaches one or more Cortex Agents to a Snowflake Intelligence (CoWork) object.
+
+**Parameters:**
+- `si_name` (string): Name of the Snowflake Intelligence (CoWork) object to modify. An account-level object, never qualified with the target database. Required.
+- `agents` (List[string]): `'SCHEMA.AGENT_NAME'` strings identifying agents in the current target database to attach. Not pre-qualified with the database name -- `target.database` is prepended automatically. Required.
+
+**Example Usage:**
+```sql
+{% do dbt_monitorial_snowflake_cortex.add_snowflake_intelligence_agent('SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT', ['PUBLIC.MY_AGENT']) %}
+```
+
+---
+
+## remove_snowflake_intelligence_agent
+**Description:**
+Detaches one or more Cortex Agents from a Snowflake Intelligence (CoWork) object.
+
+**Parameters:**
+- `si_name` (string): Name of the Snowflake Intelligence (CoWork) object to modify. An account-level object, never qualified with the target database. Required.
+- `agents` (List[string]): `'SCHEMA.AGENT_NAME'` strings identifying agents in the current target database to detach. Not pre-qualified with the database name -- `target.database` is prepended automatically. Required.
+
+**Example Usage:**
+```sql
+{% do dbt_monitorial_snowflake_cortex.remove_snowflake_intelligence_agent('SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT', ['PUBLIC.MY_AGENT']) %}
+```
+
+---
+
+## publish_snowflake_intelligence_agents
+**Description:**
+Attaches every agent model (`materialized='agent'`) that opts in to the current target via
+`config(meta={'co_work_targets': [...]})` to this account's Snowflake Intelligence (CoWork) object. The
+agent list is derived entirely from the manifest -- an agent model is skipped if it has no
+`co_work_targets` entry, or if `co_work_targets` does not include the current `target.name`. Delegates
+to `add_snowflake_intelligence_agent`, so repeated calls are safe (idempotent, additive only -- it never
+detaches an agent; use `remove_snowflake_intelligence_agent` for that). Logs and exits cleanly if the
+account has no Snowflake Intelligence object yet.
+
+**Parameters:**
+None.
+
+**Example Usage:**
+
+Opt an agent model in for a given target:
+```sql
+{{ config(materialized='agent', meta={'co_work_targets': ['prod']}) }}
+```
+
+Call as an `on-run-end` hook in `dbt_project.yml`:
+```yaml
+on-run-end:
+  - "{{ dbt_monitorial_snowflake_cortex.publish_snowflake_intelligence_agents() }}"
+```
+
+---
+
+## unpublish_snowflake_intelligence_agents
+**Description:**
+Detaches every agent model (`materialized='agent'`) that does **not** opt in to the current target via
+`config(meta={'co_work_targets': [...]})` from this account's Snowflake Intelligence (CoWork) object.
+Mirror image of `publish_snowflake_intelligence_agents`: an agent model is queued for removal if it has
+no `co_work_targets` entry, or if `co_work_targets` does not include the current `target.name`.
+Delegates to `remove_snowflake_intelligence_agent`, so repeated calls are safe (idempotent -- no-ops for
+agents that aren't currently attached). Logs and exits cleanly if the account has no Snowflake
+Intelligence object yet.
+
+**Parameters:**
+None.
+
+**Example Usage:**
+
+Call as an `on-run-end` hook in `dbt_project.yml`:
+```yaml
+on-run-end:
+  - "{{ dbt_monitorial_snowflake_cortex.unpublish_snowflake_intelligence_agents() }}"
+```
+
+---
+
+## sync_snowflake_intelligence_agents
+**Description:**
+Reconciles this account's Snowflake Intelligence (CoWork) object with every agent model's
+`co_work_targets` entry for the current target: calls `publish_snowflake_intelligence_agents` first to
+attach every opted-in agent, then `unpublish_snowflake_intelligence_agents` to detach every agent that
+is no longer opted in. Use this instead of calling `publish_snowflake_intelligence_agents` alone when
+agents should also be automatically detached from CoWork as their `co_work_targets` entries are
+removed.
+
+**Parameters:**
+None.
+
+**Example Usage:**
+
+Call as an `on-run-end` hook in `dbt_project.yml` (replaces the need to call `publish_snowflake_intelligence_agents` and `unpublish_snowflake_intelligence_agents` separately):
+```yaml
+on-run-end:
+  - "{{ dbt_monitorial_snowflake_cortex.sync_snowflake_intelligence_agents() }}"
+```
+
+## Requirements for Snowflake Intelligence
+
+- A Snowflake Intelligence (CoWork) object must already exist in the account -- create it once via Snowsight (AI & ML -> Agents -> CoWork tab -> Open settings) or `CREATE SNOWFLAKE INTELLIGENCE <name>` as `ACCOUNTADMIN`. These macros do not create it.
+- Appropriate privileges to alter the Snowflake Intelligence object and the agents being attached/detached.
+
