@@ -8,7 +8,9 @@
        queued twice -- the first DROP changes the account's actual attachment state before the second
        one runs, so queuing the same DROP statement twice would hit the same "not found" error.
 
-       `agents` is a list of 'SCHEMA.AGENT_NAME' strings, same convention as
+       Each entry in `agents` is either 'SCHEMA.AGENT_NAME' (target.database is prepended), or already
+       fully qualified as 'DATABASE.SCHEMA.AGENT_NAME' (used by publish/unpublish_snowflake_intelligence_agents
+       for agent models whose own `database` config differs from target.database), same convention as
        add_snowflake_intelligence_agent. `si_name` is the bare name of the Snowflake Intelligence object
        itself -- an account-level object, never qualified with target.database. #}
     {% if flags.WHICH not in ['run', 'build', 'run-operation'] %}
@@ -37,7 +39,7 @@
     {% set drop_statements = [] %}
     {% set queued = [] %}
     {% for agent in agents %}
-        {% set fqn = target.database ~ '.' ~ agent %}
+        {% set fqn = agent if (agent.split('.') | length) >= 3 else (target.database ~ '.' ~ agent) %}
         {% set fqn_upper = fqn | upper %}
         {% if fqn_upper in existing_agents and fqn_upper not in queued %}
             {% do drop_statements.append('alter snowflake intelligence ' ~ si_name ~ ' drop agent ' ~ fqn ~ ';') %}

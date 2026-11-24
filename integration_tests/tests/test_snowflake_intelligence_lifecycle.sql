@@ -105,17 +105,22 @@ select 1 where 1 = 0
     {%- do assertions.append('unpublish_snowflake_intelligence_agents unexpectedly detached ' ~ opted_in_agent) -%}
 {%- endif -%}
 
-{#- cleanup before testing sync, so sync starts from a known (fully detached) state -#}
+{#- cleanup before testing sync, so sync starts from a known state: opted_in detached, and
+      not_opted_in re-seeded as attached (the previous unpublish step already detached it, so without
+      re-seeding here, sync's unpublish phase would have nothing to do and a broken unpublish step
+      inside sync would go unnoticed) -#}
 {%- do dbt_monitorial_snowflake_cortex.remove_snowflake_intelligence_agent(si_name, [opted_in_agent]) -%}
+{%- do dbt_monitorial_snowflake_cortex.add_snowflake_intelligence_agent(si_name, [not_opted_in_agent]) -%}
 
-{#- 6. sync_snowflake_intelligence_agents: publish then unpublish from a clean slate -- the
-      opted-in agent must end up attached, the not-opted-in agent must end up (still) detached -#}
+{#- 6. sync_snowflake_intelligence_agents: publish then unpublish from a known starting state -- the
+      opted-in agent must end up attached (publish), the not-opted-in agent must end up detached again
+      (unpublish, proving sync's detach phase actually ran and isn't a no-op) -#}
 {{ dbt_monitorial_snowflake_cortex.sync_snowflake_intelligence_agents() }}
 {%- if not _si_attached(si_name, opted_in_fqn) -%}
     {%- do assertions.append('sync_snowflake_intelligence_agents did not attach ' ~ opted_in_agent) -%}
 {%- endif -%}
 {%- if _si_attached(si_name, not_opted_in_fqn) -%}
-    {%- do assertions.append('sync_snowflake_intelligence_agents unexpectedly attached ' ~ not_opted_in_agent) -%}
+    {%- do assertions.append('sync_snowflake_intelligence_agents did not detach ' ~ not_opted_in_agent) -%}
 {%- endif -%}
 
 {#- final cleanup: leave both test agents fully detached regardless of outcome -#}

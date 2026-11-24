@@ -10,9 +10,20 @@
        SHOW AGENTS IN SNOWFLAKE INTELLIGENCE first and only drops agents that are actually attached), so
        it is safe to call on every run even for agents that were never attached in the first place.
 
-       Agent entries are built as 'SCHEMA.AGENT_NAME' (not database-qualified), matching
-       remove_snowflake_intelligence_agent's own convention - it auto-qualifies with target.database, so
-       the same relative agent name works across dev/prod databases without hardcoding either.
+       Agent entries are built as the model's fully-qualified 'DATABASE.SCHEMA.AGENT_NAME' (using the
+       model's own resolved database, which may differ from target.database if the model overrides
+       `database` in its config) so remove_snowflake_intelligence_agent addresses the right object even
+       for cross-database agent models.
+
+       `co_work_targets` must be a list; a bare string is coerced to a single-element list so
+       `target.name not in co_work_targets` can't match a substring of the string instead of an exact
+       target name.
+
+       When this invocation is a partial run (dbt's `selected_resources` is non-empty, e.g. `dbt run -s
+       some_model`), only agent models included in `selected_resources` are considered, for the same
+       reason publish_snowflake_intelligence_agents scopes to it. A full, unselected invocation (or a
+       `run-operation` call, where `selected_resources` is always empty) considers every non-opted-in
+       agent in the manifest as before.
 
        Skips entirely (log, not error) if this account has no Snowflake Intelligence object yet.
 
@@ -26,9 +37,15 @@
     {% set agents_to_detach = [] %}
     {% for node in graph.nodes.values() %}
       {% if node.resource_type == 'model' and node.config.get('materialized') == 'agent' %}
-        {% set co_work_targets = (node.config.meta or {}).get('co_work_targets') or [] %}
-        {% if target.name not in co_work_targets %}
-          {% do agents_to_detach.append((node.schema ~ '.' ~ node.alias) | upper) %}
+        {% if (selected_resources | length) == 0 or node.unique_id in selected_resources %}
+          {% set co_work_targets = (node.config.meta or {}).get('co_work_targets') or [] %}
+          {% if co_work_targets is string %}
+            {% set co_work_targets = [co_work_targets] %}
+          {% endif %}
+          {% if target.name not in co_work_targets %}
+            {% set agent_database = node.database or target.database %}
+            {% do agents_to_detach.append((agent_database ~ '.' ~ node.schema ~ '.' ~ node.alias) | upper) %}
+          {% endif %}
         {% endif %}
       {% endif %}
     {% endfor %}

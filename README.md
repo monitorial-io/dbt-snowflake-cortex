@@ -447,5 +447,12 @@ on-run-end:
 ## Requirements for Snowflake Intelligence
 
 - A Snowflake Intelligence (CoWork) object must already exist in the account -- create it once via Snowsight (AI & ML -> Agents -> CoWork tab -> Open settings) or `CREATE SNOWFLAKE INTELLIGENCE <name>` as `ACCOUNTADMIN`. These macros do not create it.
-- Appropriate privileges to alter the Snowflake Intelligence object and the agents being attached/detached.
+- The role running dbt must have `OWNERSHIP` on the Snowflake Intelligence object to run `ALTER SNOWFLAKE INTELLIGENCE ... ADD/DROP AGENT` (confirmed live: Snowflake rejects the statement with `003001 (42501): Insufficient privileges ... must have OWNERSHIP granted` otherwise). Grant it once: `GRANT OWNERSHIP ON SNOWFLAKE INTELLIGENCE <name> TO ROLE <dbt_role>;`
+
+### Known limitations
+
+- **Deleted agent models are never detached.** `unpublish_snowflake_intelligence_agents` (and therefore `sync_snowflake_intelligence_agents`) only considers agent models currently present in the manifest. If an agent model is deleted, renamed, or its `materialized` config changed away from `'agent'`, any prior CoWork attachment for it is not automatically cleaned up -- detach it manually with `remove_snowflake_intelligence_agent` before or after removing the model.
+- **Case-sensitive quoted identifiers are not preserved.** Agent and Snowflake Intelligence names are uppercased for comparison; an agent created with a quoted, case-sensitive identifier may not match correctly.
+- **No protection against concurrent dbt invocations.** Two simultaneous runs modifying the same Snowflake Intelligence object can each read the same attachment snapshot before issuing their `ALTER` statements, and the later one can fail with an "already present" / "was not found" error from Snowflake. Avoid running `publish`/`unpublish`/`sync` concurrently against the same account.
+- **Multi-statement operations are not transactional.** Each `ADD`/`DROP AGENT` is a separate `ALTER SNOWFLAKE INTELLIGENCE` statement; if one statement in a batch fails, earlier statements in the same macro call are not rolled back.
 

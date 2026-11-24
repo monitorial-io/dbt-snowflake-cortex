@@ -10,6 +10,10 @@
 * added `unpublish_snowflake_intelligence_agents` macro to detach every agent model NOT opted in via `meta.co_work_targets` for the current target, intended for use as an `on-run-end` hook
 * added `sync_snowflake_intelligence_agents` macro to call `publish_snowflake_intelligence_agents` then `unpublish_snowflake_intelligence_agents`, fully reconciling CoWork attachments with `meta.co_work_targets`
 * added `test_snowflake_intelligence_lifecycle` integration test exercising add/remove/publish/unpublish/sync end-to-end against a real Snowflake Intelligence object, plus two supporting test agent models (`test_si_agent_opted_in`, `test_si_agent_not_opted_in`)
+* fixed `publish`/`unpublish_snowflake_intelligence_agents` treating a scalar `meta.co_work_targets` string as a sequence, which could substring-match an unintended target name
+* fixed `publish`/`unpublish_snowflake_intelligence_agents` qualifying attach/detach targets with `target.database` instead of each agent model's own resolved `database`, which addressed the wrong object for agent models that override `database` in their config
+* fixed `publish_snowflake_intelligence_agents` attempting to attach every opted-in agent in the full manifest even during a partial (`--select`) run, which could fail the whole hook by trying to `ADD` an agent not yet built in the target database; it now scopes to `selected_resources` when the invocation is a partial run
+* `add_snowflake_intelligence_agent` and `remove_snowflake_intelligence_agent` now accept either a `'SCHEMA.AGENT_NAME'` entry (target.database is prepended, unchanged) or an already-qualified `'DATABASE.SCHEMA.AGENT_NAME'` entry, used internally by publish/unpublish for cross-database agent models
 
 ## 1.3.1 - 2026-07-16 - Bug Fix
 

@@ -9,11 +9,13 @@
        on the second statement, since the first ADD changes the account's actual attachment state before
        the second one runs.
 
-       `agents` is a list of 'SCHEMA.AGENT_NAME' strings identifying agents in the current
-       target.database (mirroring grant_database_role_object's `objects` convention) -- not pre-qualified
-       with the database name. `si_name` is the bare name of the Snowflake Intelligence object itself
-       (e.g. SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT) -- it is an account-level object, not database-scoped,
-       so it is never qualified with target.database. #}
+       Each entry in `agents` is either 'SCHEMA.AGENT_NAME' (mirroring grant_database_role_object's
+       `objects` convention), in which case target.database is prepended, or already fully qualified as
+       'DATABASE.SCHEMA.AGENT_NAME' (used by publish/unpublish_snowflake_intelligence_agents for agent
+       models whose own `database` config differs from target.database), in which case it is used as-is.
+       `si_name` is the bare name of the Snowflake Intelligence object itself (e.g.
+       SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT) -- it is an account-level object, not database-scoped, so it
+       is never qualified with target.database. #}
     {% if flags.WHICH not in ['run', 'build', 'run-operation'] %}
         {% do log('Skipping add_snowflake_intelligence_agent: not run/build/run-operation context', info=True) %}
         {% do return(none) %}
@@ -40,7 +42,7 @@
     {% set add_statements = [] %}
     {% set queued = [] %}
     {% for agent in agents %}
-        {% set fqn = target.database ~ '.' ~ agent %}
+        {% set fqn = agent if (agent.split('.') | length) >= 3 else (target.database ~ '.' ~ agent) %}
         {% set fqn_upper = fqn | upper %}
         {% if fqn_upper in existing_agents %}
             {% do log('add_snowflake_intelligence_agent: ' ~ fqn ~ ' already attached to ' ~ si_name ~ ', skipping', info=True) %}
