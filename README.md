@@ -447,7 +447,14 @@ on-run-end:
 ## Requirements for Snowflake Intelligence
 
 - A Snowflake Intelligence (CoWork) object must already exist in the account -- create it once via Snowsight (AI & ML -> Agents -> CoWork tab -> Open settings) or `CREATE SNOWFLAKE INTELLIGENCE <name>` as `ACCOUNTADMIN`. These macros do not create it.
-- The role running dbt must have `OWNERSHIP` on the Snowflake Intelligence object to run `ALTER SNOWFLAKE INTELLIGENCE ... ADD/DROP AGENT` (confirmed live: Snowflake rejects the statement with `003001 (42501): Insufficient privileges ... must have OWNERSHIP granted` otherwise). Grant it once: `GRANT OWNERSHIP ON SNOWFLAKE INTELLIGENCE <name> TO ROLE <dbt_role>;`
+- The role running dbt needs `MODIFY` on the Snowflake Intelligence object to run `ALTER SNOWFLAKE INTELLIGENCE ... ADD/DROP AGENT` -- per Snowflake's documentation, `MODIFY` is the dedicated privilege for adding/removing agents, and is less than full `OWNERSHIP` of the object. `USAGE` alone is not sufficient (it only allows viewing the agent list). Grant it once:
+  ```sql
+  GRANT MODIFY ON SNOWFLAKE INTELLIGENCE <name> TO ROLE <dbt_role>;
+  ```
+  If Snowflake still rejects the statement with `003001 (42501): Insufficient privileges ... must have OWNERSHIP granted` (confirmed live on at least one account, possibly due to the finer-grained `MODIFY` privilege not yet being rolled out to every account), fall back to:
+  ```sql
+  GRANT OWNERSHIP ON SNOWFLAKE INTELLIGENCE <name> TO ROLE <dbt_role>;
+  ```
 
 ### Known limitations
 
