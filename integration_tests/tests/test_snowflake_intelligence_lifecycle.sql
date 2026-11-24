@@ -45,15 +45,6 @@ select 1 where 1 = 0
 {%- else -%}
 {%- set si_name = si_rows[0]['name'] -%}
 
-{%- macro _si_attached(si_name, fqn) -%}
-    {%- set rows = run_query('show agents in snowflake intelligence ' ~ si_name) -%}
-    {%- set attached = [] -%}
-    {%- for row in rows -%}
-        {%- do attached.append((row.database_name ~ '.' ~ row.schema_name ~ '.' ~ row.name) | upper) -%}
-    {%- endfor -%}
-    {{- return(fqn in attached) -}}
-{%- endmacro -%}
-
 {#- 1. add_snowflake_intelligence_agent: attach, with a duplicate entry to exercise dedup -#}
 {%- do dbt_monitorial_snowflake_cortex.add_snowflake_intelligence_agent(si_name, [opted_in_agent, opted_in_agent]) -%}
 {%- if not _si_attached(si_name, opted_in_fqn) -%}

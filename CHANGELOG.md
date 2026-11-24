@@ -14,6 +14,8 @@
 * fixed `publish`/`unpublish_snowflake_intelligence_agents` qualifying attach/detach targets with `target.database` instead of each agent model's own resolved `database`, which addressed the wrong object for agent models that override `database` in their config
 * fixed `publish_snowflake_intelligence_agents` attempting to attach every opted-in agent in the full manifest even during a partial (`--select`) run, which could fail the whole hook by trying to `ADD` an agent not yet built in the target database; it now scopes to `selected_resources` when the invocation is a partial run
 * `add_snowflake_intelligence_agent` and `remove_snowflake_intelligence_agent` now accept either a `'SCHEMA.AGENT_NAME'` entry (target.database is prepended, unchanged) or an already-qualified `'DATABASE.SCHEMA.AGENT_NAME'` entry, used internally by publish/unpublish for cross-database agent models
+* fixed `test_snowflake_intelligence_lifecycle` failing under dbt Core with `'_si_attached' is undefined`: a test helper defined inline as a nested `{% macro %}` works under dbt Fusion's Jinja engine but is not reliably callable later in the same render under dbt Core. Moved it to a proper macro file (`integration_tests/macros/_si_attached.sql`)
+* CI now runs the integration test suite against both dbt Core and dbt Fusion (sequentially, since both share the same account-level Snowflake Intelligence object)
 
 ## 1.3.1 - 2026-07-16 - Bug Fix
 
