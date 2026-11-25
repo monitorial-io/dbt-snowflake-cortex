@@ -77,22 +77,38 @@ jobs:
         run: sqlfluff lint macros/ || true
 
   test:
-    name: Integration Tests
+    name: Integration Tests (dbt ${{ matrix.dbt-engine }})
     runs-on: ubuntu-latest
     needs: compile
     if: >
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
+    strategy:
+      fail-fast: false
+      # Run sequentially: both engines share the same account-level Snowflake Intelligence
+      # object, and test_snowflake_intelligence_lifecycle mutates it live -- running both engines
+      # in parallel would race on that shared object.
+      max-parallel: 1
+      matrix:
+        dbt-engine: [core, fusion]
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
+        if: matrix.dbt-engine == 'core'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dbt-snowflake
+      - name: Install dbt-snowflake (dbt Core)
+        if: matrix.dbt-engine == 'core'
         run: pip install dbt-snowflake>=1.9.4
+
+      - name: Install dbt Fusion (dbt v2)
+        if: matrix.dbt-engine == 'fusion'
+        run: |
+          curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Write private key
         run: |

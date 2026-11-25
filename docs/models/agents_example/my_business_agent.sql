@@ -1,9 +1,11 @@
 {{
     config(
         materialized='agent',
+        static_analysis='off',
         meta={
             'comment': 'Example business agent',
-            'profile': '{"display_name": "Business Agent", "avatar": "icon.png", "color": "blue"}'
+            'profile': '{"display_name": "Business Agent", "avatar": "icon.png", "color": "blue"}',
+            'co_work_targets': ['prod']
         }
     )
 }}
